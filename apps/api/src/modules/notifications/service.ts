@@ -120,7 +120,10 @@ export async function reconcile(
 
   // Housekeeping: expired sessions and spent one-time tokens are useless, and
   // keeping them only grows tables that are read on every request.
-  const sessions = await db.deleteFrom('sessions').where('expires_at', '<', sql<Date>`now()`).executeTakeFirst();
+  const sessions = await db
+    .deleteFrom('sessions')
+    .where('expires_at', '<', sql<Date>`now()`)
+    .executeTakeFirst();
   const tokens = await db
     .deleteFrom('auth_tokens')
     .where((eb) =>

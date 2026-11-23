@@ -20,8 +20,9 @@ const apiEnv = {
   REDIS_URL: process.env.REDIS_URL ?? 'redis://localhost:6379',
   PAYMENTS_PROVIDER: 'mock',
   RAZORPAY_WEBHOOK_SECRET: 'e2e-webhook-secret',
-  SMTP_HOST: 'localhost',
-  SMTP_PORT: '1025',
+  // e2e/email-flows.spec.ts runs a tiny SMTP server on this port to read the emails.
+  SMTP_HOST: '127.0.0.1',
+  SMTP_PORT: '2526',
   LOG_LEVEL: 'warn',
 };
 
