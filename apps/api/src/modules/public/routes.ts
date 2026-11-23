@@ -11,7 +11,12 @@ import type { AppDeps } from '../../app';
 import { withTenant } from '../../db/tenant-tx';
 import { notFound } from '../../lib/errors';
 import { iso, parse, respond } from '../../lib/validate';
-import { findOpenDays, findSlots } from '../availability/service';
+import {
+  findOpenDays,
+  findOpenDaysAnyStaff,
+  findSlots,
+  findSlotsAnyStaff,
+} from '../availability/service';
 import { toServiceDto } from '../services/routes';
 import { listServices } from '../services/repo';
 import { listStaff } from '../staff/repo';
@@ -57,7 +62,11 @@ export async function publicRoutes(app: FastifyInstance, { db }: AppDeps) {
   app.get('/public/:slug/slots', async (req) => {
     const tenant = await tenantFromSlug((req.params as { slug: string }).slug);
     const q = parse(SlotsQuery, req.query);
-    const result = await withTenant(db, tenant.id, (tx) => findSlots(tx, q));
+    const result = await withTenant(db, tenant.id, (tx) =>
+      q.staffId === 'any'
+        ? findSlotsAnyStaff(tx, { serviceId: q.serviceId, date: q.date })
+        : findSlots(tx, { serviceId: q.serviceId, staffId: q.staffId, date: q.date }),
+    );
     return respond(SlotsResponse, {
       date: q.date,
       timezone: result.timezone,
@@ -69,6 +78,18 @@ export async function publicRoutes(app: FastifyInstance, { db }: AppDeps) {
   app.get('/public/:slug/days', async (req) => {
     const tenant = await tenantFromSlug((req.params as { slug: string }).slug);
     const q = parse(OpenDaysQuery, req.query);
-    return respond(OpenDaysResponse, await withTenant(db, tenant.id, (tx) => findOpenDays(tx, q)));
+    return respond(
+      OpenDaysResponse,
+      await withTenant(db, tenant.id, (tx) =>
+        q.staffId === 'any'
+          ? findOpenDaysAnyStaff(tx, { serviceId: q.serviceId, from: q.from, days: q.days })
+          : findOpenDays(tx, {
+              serviceId: q.serviceId,
+              staffId: q.staffId,
+              from: q.from,
+              days: q.days,
+            }),
+      ),
+    );
   });
 }

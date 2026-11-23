@@ -8,7 +8,7 @@ import type { Effects } from '../../lib/effects';
 import { AppError, notFound } from '../../lib/errors';
 import { iso, isoOrNull } from '../../lib/validate';
 import { writeAudit } from '../audit/repo';
-import { findSlots } from '../availability/service';
+import { findSlots, findSlotsAnyStaff } from '../availability/service';
 import { localDateOf } from '../availability/slots';
 import {
   cancelPendingNotifications,
@@ -160,13 +160,22 @@ export async function holdSlot(
   const date = localDateOf(startAt, tenant.timezone);
 
   // 1. Is this an actual available slot (right hours, not in the past, not too far ahead)?
-  const { slots, service } = await findSlots(tx, {
-    serviceId: input.serviceId,
-    staffId: input.staffId,
-    date,
-  });
+  //    For "anyone available", also work out who could take it, least busy first.
+  let slots, service, candidates: string[];
+  if (input.staffId === 'any') {
+    const any = await findSlotsAnyStaff(tx, { serviceId: input.serviceId, date });
+    ({ slots, service } = any);
+    candidates = any.candidatesAt(startAt);
+  } else {
+    ({ slots, service } = await findSlots(tx, {
+      serviceId: input.serviceId,
+      staffId: input.staffId,
+      date,
+    }));
+    candidates = [input.staffId];
+  }
   const slot = slots.find((s) => s.startAt.getTime() === startAt.getTime());
-  if (!slot)
+  if (!slot || candidates.length === 0)
     throw new AppError('SLOT_TAKEN', 'That time is no longer available. Please pick another.');
 
   // 2. Stop one customer from holding every slot at once.
@@ -185,29 +194,37 @@ export async function holdSlot(
     );
   }
 
-  // 3. Queue behind other writers for this staff member (prevents deadlocks),
-  //    then clear any timed-out holds in the way (in case their expiry job is late).
-  await repo.lockStaffCalendar(tx, input.staffId);
-  await repo.expireStaleHoldsInRange(tx, input.staffId, slot.startAt, slot.endAt);
-
-  // 4. Insert. The database is the referee.
+  // 3 + 4. For each candidate (just one unless "anyone available"):
+  //   - queue behind other writers for this staff member (prevents deadlocks),
+  //   - clear any timed-out holds in the way (in case their expiry job is late),
+  //   - INSERT. The database is the referee.
+  // Each attempt runs inside a SAVEPOINT: if the exclusion constraint rejects
+  // it, we undo just that attempt (releasing its lock) and try the next person.
   const holdExpiresAt = new Date(Date.now() + HOLD_MINUTES * 60_000);
   let booking;
-  try {
-    booking = await repo.insertHeldBooking(tx, {
-      serviceId: service.id,
-      staffMembershipId: input.staffId,
-      customerMembershipId: actor.membershipId,
-      startAt: slot.startAt,
-      endAt: slot.endAt,
-      pricePaise: service.price_paise,
-      holdExpiresAt,
-    });
-  } catch (err) {
-    if (pgErrorCode(err) === PG.EXCLUSION_VIOLATION) {
-      throw new AppError('SLOT_TAKEN', 'Someone just took that slot. Please pick another.');
+  for (const staffId of candidates) {
+    await sql`SAVEPOINT hold_attempt`.execute(tx.db);
+    try {
+      await repo.lockStaffCalendar(tx, staffId);
+      await repo.expireStaleHoldsInRange(tx, staffId, slot.startAt, slot.endAt);
+      booking = await repo.insertHeldBooking(tx, {
+        serviceId: service.id,
+        staffMembershipId: staffId,
+        customerMembershipId: actor.membershipId,
+        startAt: slot.startAt,
+        endAt: slot.endAt,
+        pricePaise: service.price_paise,
+        holdExpiresAt,
+      });
+      await sql`RELEASE SAVEPOINT hold_attempt`.execute(tx.db);
+      break;
+    } catch (err) {
+      if (pgErrorCode(err) !== PG.EXCLUSION_VIOLATION) throw err;
+      await sql`ROLLBACK TO SAVEPOINT hold_attempt`.execute(tx.db);
     }
-    throw err;
+  }
+  if (!booking) {
+    throw new AppError('SLOT_TAKEN', 'Someone just took that slot. Please pick another.');
   }
   const tenantId = tx.tenantId;
   // Fire one second after expiry so the job never runs a moment too early.

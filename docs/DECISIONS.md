@@ -255,3 +255,10 @@ Each entry: **Decision → Alternatives considered → Why this one → Trade-of
 - **Decision:** Dashboard pages load with `React.lazy` when first opened. Libraries go into separate `react`, `data` and `luxon` files, and Sentry loads only if it's configured.
 - **Why:** The booking page is opened by customers, often on phones and mobile data. Our own code is now a ~15 KB (gzipped) file; the library files stay cached in the browser across our deploys because they rarely change.
 - **Trade-off:** A short loading state the first time an owner opens each dashboard page.
+
+## D42. "Anyone available": try people in a fair order, each attempt in a savepoint
+
+- **Decision:** With `staffId: "any"`, the API lists everyone who offers the service and is free at that time, least busy that day first (tie broken by id). It then tries them one by one. Each attempt (lock that person's calendar → clear stale holds → INSERT) runs inside a `SAVEPOINT`. If the exclusion constraint rejects it, we roll back just that attempt and try the next person.
+- **Alternatives:** Pick one person at random and return 409 if they're taken (wrong: someone else may still be free); lock every candidate's calendar up front (more waiting, and deadlock-prone if two requests lock in different orders).
+- **Why:** Customers get a booking whenever **anyone** is free, and work is spread across the team. Rolling back to a savepoint also releases that attempt's advisory lock, so a request never holds one person's lock while waiting for another's, and deadlocks can't form.
+- **Tested:** 12 customers ask for the same time at once, 5 runs in a row: always exactly 2 bookings (one per free person) and 10 × 409, with no deadlocks in the Postgres log.

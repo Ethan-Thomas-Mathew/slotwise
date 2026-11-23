@@ -36,7 +36,11 @@ export const PublicTenantResponse = z.object({
 });
 export type PublicTenantResponse = z.infer<typeof PublicTenantResponse>;
 
-export const SlotsQuery = z.object({ serviceId: Uuid, staffId: Uuid, date: IsoDate });
+/** A specific staff member, or "any" = whoever is free. */
+export const StaffChoice = z.union([Uuid, z.literal('any')]);
+export const ANY_STAFF = 'any';
+
+export const SlotsQuery = z.object({ serviceId: Uuid, staffId: StaffChoice, date: IsoDate });
 export const SlotsResponse = z.object({
   date: IsoDate,
   timezone: z.string(),
@@ -46,7 +50,7 @@ export type SlotsResponse = z.infer<typeof SlotsResponse>;
 
 export const OpenDaysQuery = z.object({
   serviceId: Uuid,
-  staffId: Uuid,
+  staffId: StaffChoice,
   from: IsoDate,
   days: z.coerce.number().int().min(1).max(31).default(21),
 });
@@ -57,7 +61,11 @@ export const OpenDaysResponse = z.object({
 export type OpenDaysResponse = z.infer<typeof OpenDaysResponse>;
 
 // ---------- Bookings ----------
-export const HoldRequest = z.object({ serviceId: Uuid, staffId: Uuid, startAt: IsoDateTime });
+export const HoldRequest = z.object({
+  serviceId: Uuid,
+  staffId: StaffChoice,
+  startAt: IsoDateTime,
+});
 export type HoldRequest = z.infer<typeof HoldRequest>;
 
 export const RescheduleRequest = z.object({ startAt: IsoDateTime, staffId: Uuid.optional() });

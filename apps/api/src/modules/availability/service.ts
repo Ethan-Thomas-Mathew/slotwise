@@ -3,7 +3,7 @@ import type { TenantTx } from '../../db/tenant-tx';
 import { notFound } from '../../lib/errors';
 import { listBusyIntervals } from '../bookings/repo';
 import { getService } from '../services/repo';
-import { getStaffMember, staffOffersService } from '../staff/repo';
+import { getStaffMember, listStaffIdsForService, staffOffersService } from '../staff/repo';
 import { getTenant } from '../tenants/repo';
 import { listRules, listTimeOff } from './repo';
 import { generateSlots, localDayRange, type Interval } from './slots';
@@ -35,7 +35,14 @@ async function loadCalendar(
 
   const first = localDayRange(q.firstDate, tenant.timezone);
   const last = localDayRange(q.lastDate, tenant.timezone);
-  if (!first || !last) return { tenant, service, slotsOn: (_date: string): Interval[] => [] };
+  if (!first || !last) {
+    return {
+      tenant,
+      service,
+      slotsOn: (_date: string): Interval[] => [],
+      busyCountOn: (_date: string) => 0,
+    };
+  }
   const range = { from: first.startAt, to: last.endAt };
 
   const [rules, timeOff, busy] = await Promise.all([
@@ -56,7 +63,18 @@ async function loadCalendar(
     now,
     horizonDays: tenant.booking_horizon_days,
   };
-  return { tenant, service, slotsOn: (date: string) => generateSlots({ ...input, date }) };
+  /** How many bookings this person already has that day (used to share work fairly). */
+  const busyCountOn = (date: string) => {
+    const day = localDayRange(date, tenant.timezone);
+    if (!day) return 0;
+    return input.busy.filter((b) => b.startAt < day.endAt && b.endAt > day.startAt).length;
+  };
+  return {
+    tenant,
+    service,
+    slotsOn: (date: string) => generateSlots({ ...input, date }),
+    busyCountOn,
+  };
 }
 
 /**
@@ -94,4 +112,77 @@ export async function findOpenDays(
     timezone: cal.tenant.timezone,
     days: dates.map((date) => ({ date, openSlots: cal.slotsOn(date).length })),
   };
+}
+
+/**
+ * "Anyone available": the open times across EVERYONE who offers the service.
+ * For each start time we also return who could take it, least busy first, so
+ * the hold can try them in a fair order.
+ */
+export async function findSlotsAnyStaff(
+  tx: TenantTx,
+  q: { serviceId: string; date: string },
+  now = new Date(),
+): Promise<{
+  timezone: string;
+  slots: Interval[];
+  service: ServiceRow;
+  candidatesAt: (startAt: Date) => string[];
+}> {
+  const staffIds = await listStaffIdsForService(tx, q.serviceId);
+  if (staffIds.length === 0) throw notFound('Staff member');
+  const byStart = new Map<number, { slot: Interval; staff: { id: string; load: number }[] }>();
+  let timezone = '';
+  let service: ServiceRow | undefined;
+  for (const staffId of staffIds) {
+    const cal = await loadCalendar(
+      tx,
+      { serviceId: q.serviceId, staffId, firstDate: q.date, lastDate: q.date },
+      now,
+    );
+    timezone = cal.tenant.timezone;
+    service = cal.service;
+    const load = cal.busyCountOn(q.date);
+    for (const slot of cal.slotsOn(q.date)) {
+      const key = slot.startAt.getTime();
+      const entry = byStart.get(key) ?? { slot, staff: [] };
+      entry.staff.push({ id: staffId, load });
+      byStart.set(key, entry);
+    }
+  }
+  const entries = [...byStart.entries()].sort((a, b) => a[0] - b[0]);
+  return {
+    timezone,
+    service: service!,
+    slots: entries.map(([, e]) => e.slot),
+    candidatesAt: (startAt) =>
+      (byStart.get(startAt.getTime())?.staff ?? [])
+        .sort((a, b) => a.load - b.load || a.id.localeCompare(b.id))
+        .map((s) => s.id),
+  };
+}
+
+/** findOpenDays for "anyone available": distinct open start times per day, across all staff. */
+export async function findOpenDaysAnyStaff(
+  tx: TenantTx,
+  q: { serviceId: string; from: string; days: number },
+  now = new Date(),
+): Promise<{ timezone: string; days: { date: string; openSlots: number }[] }> {
+  const start = DateTime.fromISO(q.from);
+  if (!start.isValid) return { timezone: (await getTenant(tx)).timezone, days: [] };
+  const dates = Array.from({ length: q.days }, (_, i) => start.plus({ days: i }).toISODate()!);
+  const staffIds = await listStaffIdsForService(tx, q.serviceId);
+  if (staffIds.length === 0) throw notFound('Staff member');
+  const starts = new Map(dates.map((d) => [d, new Set<number>()]));
+  let timezone = '';
+  for (const staffId of staffIds) {
+    const cal = await loadCalendar(
+      tx,
+      { serviceId: q.serviceId, staffId, firstDate: dates[0]!, lastDate: dates.at(-1)! },
+      now,
+    );
+    timezone = cal.tenant.timezone;
+    for (const d of dates) for (const s of cal.slotsOn(d)) starts.get(d)!.add(s.startAt.getTime());
+  }
+  return { timezone, days: dates.map((date) => ({ date, openSlots: starts.get(date)!.size })) };
 }

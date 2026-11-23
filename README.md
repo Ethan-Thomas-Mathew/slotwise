@@ -1,6 +1,6 @@
 # Slotwise
 
-**Multi-tenant booking for small service businesses.** Salons, clinics and coaching centres each get a booking page (`/b/your-business`). Customers pick a service, a person and a time, pay by UPI or card through Razorpay, and get a confirmation and a reminder the day before. Owners manage services, staff hours and bookings; staff see their schedule. Every business's data is walled off from every other's, a slot can never be sold twice, and payments are confirmed only by the payment provider's signed webhook.
+**Multi-tenant booking for small service businesses.** Salons, clinics and coaching centres each get a booking page (`/b/your-business`). Customers pick a service, a person (or "anyone available") and a time, pay by UPI or card through Razorpay, and get a confirmation and a reminder the day before. Owners manage services, staff hours and bookings; staff see their schedule. Every business's data is walled off from every other's, a slot can never be sold twice, and payments are confirmed only by the payment provider's signed webhook.
 
 > Built as a portfolio project to industry standards: 300+ automated tests, CI, Docker, and written design decisions. See [`docs/DECISIONS.md`](docs/DECISIONS.md) and [`docs/LEARNING.md`](docs/LEARNING.md).
 
@@ -148,12 +148,11 @@ Requirements: Node 22, pnpm 10, Docker.
 ## What I'd build next
 
 1. Deploy the live demo and record the walkthrough video.
-2. "Any available staff" option and multi-staff slot search.
-3. Customer self-serve without an account (magic-link booking management).
-4. Owner calendar view (drag to reschedule), and CSV export of bookings and payments.
-5. WhatsApp reminders (Indian customers read WhatsApp more than email).
-6. Per-account rate limits and MFA for owners.
-7. Load test the hold endpoint and measure the advisory-lock cost.
+2. Customer self-serve without an account (magic-link booking management).
+3. Owner calendar view (drag to reschedule), and CSV export of bookings and payments.
+4. WhatsApp reminders (Indian customers read WhatsApp more than email).
+5. Per-account rate limits and MFA for owners.
+6. Load test the hold endpoint and measure the advisory-lock cost.
 
 ---
 

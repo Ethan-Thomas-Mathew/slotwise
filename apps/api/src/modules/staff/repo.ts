@@ -63,6 +63,20 @@ export async function setStaffServices(tx: TenantTx, membershipId: string, servi
     .execute();
 }
 
+/** Everyone who can be booked for this service (owner or staff, and they offer it). */
+export async function listStaffIdsForService(tx: TenantTx, serviceId: string) {
+  const rows = await tx.db
+    .selectFrom('staff_services')
+    .innerJoin('memberships', 'memberships.id', 'staff_services.staff_membership_id')
+    .select('staff_services.staff_membership_id as id')
+    .where('staff_services.tenant_id', '=', tx.tenantId)
+    .where('staff_services.service_id', '=', serviceId)
+    .where('memberships.role', 'in', ['OWNER', 'STAFF'])
+    .orderBy('staff_services.staff_membership_id')
+    .execute();
+  return rows.map((r) => r.id);
+}
+
 export async function staffOffersService(tx: TenantTx, membershipId: string, serviceId: string) {
   const row = await tx.db
     .selectFrom('staff_services')

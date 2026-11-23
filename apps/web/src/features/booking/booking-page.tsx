@@ -49,7 +49,16 @@ export function BookingPage() {
     () => page.data?.staff.filter((s) => serviceId && s.serviceIds.includes(serviceId)) ?? [],
     [page.data, serviceId],
   );
-  const staff = staffForService.find((s) => s.membershipId === staffId);
+  // With several people offering the service, customers can also pick "Anyone available".
+  const staffOptions = useMemo(
+    () =>
+      staffForService.length > 1
+        ? [{ membershipId: 'any', name: 'Anyone available', serviceIds: [] }, ...staffForService]
+        : staffForService,
+    [staffForService],
+  );
+  const staff = staffOptions.find((s) => s.membershipId === staffId);
+  const isAny = staff?.membershipId === 'any';
 
   // With only one person offering the service, pick them automatically.
   useEffect(() => {
@@ -158,7 +167,7 @@ export function BookingPage() {
           {serviceId && (
             <Step n={2} title="Who would you like?">
               <div role="radiogroup" aria-label="Staff member" className="flex flex-wrap gap-2">
-                {staffForService.map((s) => {
+                {staffOptions.map((s) => {
                   const sel = s.membershipId === staffId;
                   return (
                     <button
@@ -199,8 +208,8 @@ export function BookingPage() {
               />
               {openDays.counts && !openDays.firstOpen && (
                 <p className="mt-2 text-sm text-muted">
-                  {staff.name} has no open times in the next {stripDays} days. Try someone else, or
-                  check back later.
+                  {isAny ? 'Nobody' : staff.name} has no open times in the next {stripDays} days.{' '}
+                  {isAny ? 'Please check back later.' : 'Try someone else, or check back later.'}
                 </p>
               )}
               <div className="mt-5">
@@ -221,7 +230,7 @@ export function BookingPage() {
               {time && (
                 <div className="mt-6 rounded-[var(--radius-panel)] border-2 border-marigold bg-marigold-tint p-5">
                   <p className="font-display text-xl font-semibold">
-                    {service.name} with {staff.name}
+                    {service.name} {isAny ? 'with whoever is free' : `with ${staff.name}`}
                   </p>
                   <p className="tabular mt-1">
                     {fmtDayLong(time, tz)} at {fmtTime(time, tz)},{' '}
