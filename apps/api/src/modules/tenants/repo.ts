@@ -37,9 +37,11 @@ export async function updateTenantSettings(
     booking_horizon_days: number;
   }>,
 ) {
+  const changes = Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined));
+  if (Object.keys(changes).length === 0) return getTenant(tx);
   return tx.db
     .updateTable('tenants')
-    .set(patch)
+    .set(changes)
     .where('id', '=', tx.tenantId)
     .returningAll()
     .executeTakeFirstOrThrow();

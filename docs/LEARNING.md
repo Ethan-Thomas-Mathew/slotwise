@@ -91,3 +91,31 @@ Plain-language notes, one section per phase: what was built, why, and the concep
 - **Rate limiting:** capping how often something can be done.
 - **User enumeration:** finding out which emails have accounts from differing error messages.
 - **Constant-time comparison:** comparing secrets without leaking, through timing, how many characters matched.
+
+---
+
+## Phase 3: Services, staff and availability
+
+**What was built:** owner screens' API for services, team members, working hours and time off (every change written to the audit log), the public booking page API (`/public/{slug}` and `/public/{slug}/slots`), and the **slot generator**.
+
+**How available slots are calculated** (`src/modules/availability/slots.ts`):
+
+1. Turn the requested date (e.g. `2026-12-01`) into that day in the **business's** timezone.
+2. Pick the staff member's working windows for that weekday (e.g. 09:00–12:00 and 14:00–17:00).
+3. Walk each window in steps of the service length: 09:00, 09:30, 10:00…
+4. Throw away any slot that overlaps time off or an existing booking, starts in the past, or is further ahead than the booking horizon (60 days by default).
+
+It's a **pure function**: it gets everything it needs as arguments and doesn't touch the database or the clock. `availability/service.ts` loads the data from the database and calls it. That split is why the function has 31 fast unit tests.
+
+**Why daylight saving matters even for an Indian business:** India has no DST, but the code supports any timezone. On the day New York's clocks jump forward, "01:00–04:00" is only two real hours. The tests prove no fake 02:00 slot appears.
+
+**Audit log:** every owner change records _who_, _what_, _before_ and _after_, inside the same transaction as the change. The app role can't UPDATE or DELETE audit rows (enforced in the database).
+
+**Concepts:**
+
+- **Pure function:** output depends only on inputs; no side effects.
+- **IANA timezone:** names like `Asia/Kolkata`; they include all historical and DST rules.
+- **Half-open interval `[start, end)`:** includes the start, excludes the end. Two intervals overlap when `a.start < b.end && b.start < a.end`.
+- **Audit log:** an append-only history of who changed what.
+- **Soft delete / deactivate:** hide something instead of deleting it, to preserve history.
+- **HTTP 404 vs 403:** 404 hides whether something exists; 403 says it exists but you can't have it.

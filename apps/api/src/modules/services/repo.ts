@@ -42,9 +42,11 @@ export async function updateService(
   id: string,
   patch: Partial<{ name: string; duration_minutes: number; price_paise: number; active: boolean }>,
 ) {
+  const changes = Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined));
+  if (Object.keys(changes).length === 0) return getService(tx, id);
   return tx.db
     .updateTable('services')
-    .set(patch)
+    .set(changes)
     .where('tenant_id', '=', tx.tenantId)
     .where('id', '=', id)
     .returningAll()

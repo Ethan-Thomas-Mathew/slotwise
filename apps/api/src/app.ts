@@ -11,6 +11,11 @@ import { AppError } from './lib/errors';
 import { registerAuth } from './plugins/auth';
 import { registerErrorHandler } from './plugins/error-handler';
 import { authRoutes } from './modules/auth/routes';
+import { auditRoutes } from './modules/audit/routes';
+import { publicRoutes } from './modules/public/routes';
+import { serviceRoutes } from './modules/services/routes';
+import { staffRoutes } from './modules/staff/routes';
+import { tenantRoutes } from './modules/tenants/routes';
 
 /** Everything the HTTP app needs, passed in from outside (makes testing easy). */
 export interface AppDeps {
@@ -84,6 +89,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   await authRoutes(app, deps);
+  await publicRoutes(app, deps);
+  await tenantRoutes(app, deps);
+  await serviceRoutes(app, deps);
+  await staffRoutes(app, deps);
+  await auditRoutes(app, deps);
 
   return app;
 }

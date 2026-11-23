@@ -97,3 +97,26 @@ Each entry: **Decision → Alternatives considered → Why this one → Trade-of
 
 - **Decision:** Accept-invite checks the password first and only then marks the token as used (`UPDATE … WHERE used_at IS NULL RETURNING`, which is atomic).
 - **Why:** A typo in the password shouldn't destroy the invite, and two simultaneous accepts can't both succeed.
+
+## D15. Slot generation is a pure function on a fixed grid
+
+- **Decision:** `generateSlots()` takes plain data (rules, time off, busy ranges, now, timezone) and returns slots. Slot start times follow a grid that starts at each working window's start and moves in steps of the service duration (configurable).
+- **Alternatives:** Generate slots in SQL; start new slots right after each booking ends.
+- **Why:** A pure function needs no database or clock to test, so 30+ edge cases (DST, day boundaries, partial time off) run in milliseconds. A fixed grid gives customers tidy times (10:00, 10:30) instead of odd ones (10:17).
+- **Trade-off:** A fixed grid can leave small gaps unused (e.g. a 20-minute gap after an odd-length booking). Owners can lower the step later if that matters.
+
+## D16. Times stored in UTC; the tenant's timezone is used only at the edges
+
+- **Decision:** Every instant is `timestamptz` (UTC). Working hours are local wall-clock minutes. The slot generator converts with Luxon using the tenant's IANA timezone, and the API returns ISO strings with `Z`.
+- **Why:** UTC instants never become ambiguous; wall-clock hours are what owners actually think in. Stepping through slots in absolute milliseconds means DST changes can't create impossible or duplicate slots (tested for New York spring-forward and fall-back).
+- **Trade-off:** The frontend must format times in the **business's** timezone, not the viewer's.
+
+## D17. Unknown, malformed and other-tenant ids all return 404
+
+- **Decision:** A route id that isn't a UUID, doesn't exist, or belongs to another tenant gets the same 404.
+- **Why:** Returning 403 for "exists but not yours" would confirm the id exists in some other tenant. Validating UUIDs before querying also avoids a Postgres cast error (a 500).
+
+## D18. Services with bookings can't be deleted, only deactivated
+
+- **Why:** Old bookings and payments reference the service. Deleting it would break history and reports. Deactivating hides it from the booking page.
+- **Same idea for staff:** removing a staff member downgrades them to customer and removes their hours, so their past bookings still point at a real membership. Removal is refused while they have upcoming bookings.
