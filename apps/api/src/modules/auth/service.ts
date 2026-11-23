@@ -266,6 +266,9 @@ export async function inviteStaff(
   );
   const link = `${webOrigin}/accept-invite?token=${encodeURIComponent(token)}`;
   await jobs.sendEmail(staffInviteEmail(email, input.name, tenant.name, link));
+  // Also returned to the owner, who can share it directly (e.g. on WhatsApp)
+  // if email isn't set up or lands in spam. See DECISIONS.md D43.
+  return { inviteLink: link };
 }
 
 export async function previewInvite(db: Database, token: string) {

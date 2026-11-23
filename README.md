@@ -142,7 +142,6 @@ Requirements: Node 22, pnpm 10, Docker.
 - **Emails are at-least-once:** a crash at the wrong moment can send a duplicate email; it never loses one.
 - **Fixed slot grid** (steps of the service length): tidy times, but small gaps can go unused.
 - **INR only, Razorpay only.** No tax/GST invoices.
-- Staff invites need a working email (Mailpit locally). There's no "copy invite link" fallback yet, so an owner without email set up can't add staff.
 - Not yet deployed; the deployment guide is written but untested.
 
 ## What I'd build next

@@ -262,3 +262,9 @@ Each entry: **Decision → Alternatives considered → Why this one → Trade-of
 - **Alternatives:** Pick one person at random and return 409 if they're taken (wrong: someone else may still be free); lock every candidate's calendar up front (more waiting, and deadlock-prone if two requests lock in different orders).
 - **Why:** Customers get a booking whenever **anyone** is free, and work is spread across the team. Rolling back to a savepoint also releases that attempt's advisory lock, so a request never holds one person's lock while waiting for another's, and deadlocks can't form.
 - **Tested:** 12 customers ask for the same time at once, 5 runs in a row: always exactly 2 bookings (one per free person) and 10 × 409, with no deadlocks in the Postgres log.
+
+## D43. Owners also get the invite link to share directly
+
+- **Decision:** Inviting a team member still emails them, and the API also returns the link so the owner can copy it into WhatsApp or SMS.
+- **Why:** Small businesses often don't have reliable email set up, and invites land in spam. Without this, an owner without email couldn't add staff at all.
+- **Trade-off:** The link no longer proves the person controls that email address. The owner could open it themselves and set a password for that email. The damage is limited: the real owner of the address can take the account back with "Forgot password" (which also logs out every other session), and the invite only grants staff access to the inviting owner's own business. The link is still single-use and expires in 7 days.

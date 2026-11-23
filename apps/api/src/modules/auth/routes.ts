@@ -4,6 +4,7 @@ import {
   ForgotPasswordRequest,
   InvitePreviewResponse,
   InviteStaffRequest,
+  InviteStaffResponse,
   LoginRequest,
   MeResponse,
   OkResponse,
@@ -115,9 +116,15 @@ export async function authRoutes(app: FastifyInstance, deps: AppDeps) {
 
   app.post('/staff/invites', { preHandler: requireRole('OWNER') }, async (req, reply) => {
     const body = parse(InviteStaffRequest, req.body);
-    await auth.inviteStaff(db, jobs, tenantContext(req), body, config.WEB_ORIGIN);
+    const { inviteLink } = await auth.inviteStaff(
+      db,
+      jobs,
+      tenantContext(req),
+      body,
+      config.WEB_ORIGIN,
+    );
     reply.status(201);
-    return respond(OkResponse, { ok: true });
+    return respond(InviteStaffResponse, { inviteLink });
   });
 
   app.get('/auth/invites/:token', async (req) => {

@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   clockToMinutes,
+  type InviteStaffResponse,
   InviteStaffRequest,
   type AvailabilityRule,
   type ServiceDto,
@@ -149,12 +150,51 @@ function InviteDialog({ onClose }: { onClose: () => void }) {
     resolver: zodResolver(InviteStaffRequest),
   });
   const invite = useMutation({
-    mutationFn: (v: { email: string; name: string }) => post('/staff/invites', v),
-    onSuccess: (_d, v) => {
-      toast(`Invite sent to ${v.email}`);
-      onClose();
-    },
+    mutationFn: (v: { email: string; name: string }) =>
+      post<InviteStaffResponse>('/staff/invites', v),
+    onSuccess: (_d, v) => toast(`Invite sent to ${v.email}`),
   });
+  const [copied, setCopied] = useState(false);
+
+  // After sending: show the link too, so it can be shared directly (WhatsApp,
+  // SMS) in case the email is slow or lands in spam.
+  if (invite.isSuccess) {
+    const link = invite.data.inviteLink;
+    return (
+      <Dialog open onClose={onClose} title="Invite sent">
+        <p className="text-[15px]">
+          We emailed {invite.variables.name} a link to join. You can also send them this link
+          yourself. It works once, for 7 days.
+        </p>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+          <input
+            readOnly
+            aria-label="Invite link"
+            value={link}
+            onFocus={(e) => e.currentTarget.select()}
+            className="h-10 min-w-0 flex-1 rounded-[var(--radius-control)] border border-line bg-paper px-3 text-sm"
+          />
+          <Button
+            variant="secondary"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(link);
+                setCopied(true);
+              } catch {
+                toast('Copying was blocked. Select the link and copy it.', 'error');
+              }
+            }}
+          >
+            {copied ? 'Copied' : 'Copy link'}
+          </Button>
+        </div>
+        <div className="mt-6 flex justify-end">
+          <Button onClick={onClose}>Done</Button>
+        </div>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open onClose={onClose} title="Invite a team member">
       <form

@@ -293,6 +293,25 @@ describe('staff invites', () => {
     expect(ok.json().activeTenant.role).toBe('STAFF');
   });
 
+  it('returns the invite link to the owner so it can be shared without email', async () => {
+    const owner = new Client(t.app);
+    await owner.login(tenant.owner.email);
+    const email = `linkstaff-${u()}@test.local`;
+    const res = await owner.post('/staff/invites', { email, name: 'Link Staff' });
+    expect(res.statusCode).toBe(201);
+    const link: string = res.json().inviteLink;
+    expect(link).toMatch(/^http:\/\/localhost:5173\/accept-invite\?token=/);
+    // It's the same link that was emailed, and it works.
+    const token = decodeURIComponent(link.split('token=')[1]!);
+    expect(token).toBe(t.jobs.tokenFromLastEmail(email));
+    const accepted = await new Client(t.app).post('/auth/accept-invite', {
+      token,
+      name: 'Link Staff',
+      password: 'staffpass123',
+    });
+    expect(accepted.json().activeTenant.role).toBe('STAFF');
+  });
+
   it('staff and customers cannot invite', async () => {
     const other = await createTestTenant(t.db);
     for (const email of [other.staff.email, other.customer.email]) {

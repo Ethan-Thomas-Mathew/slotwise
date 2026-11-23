@@ -33,6 +33,10 @@ test('owner invites a team member, who accepts from the email link', async ({ br
   await dialog.getByLabel('Email').fill(staff.email);
   await dialog.getByRole('button', { name: 'Send invite' }).click();
   await expect(owner.getByText(`Invite sent to ${staff.email}`)).toBeVisible();
+  // The owner also sees the link, to share it directly if email is slow.
+  const shownLink = await owner.getByLabel('Invite link').inputValue();
+  expect(shownLink).toContain('/accept-invite?token=');
+  await owner.getByRole('button', { name: 'Done' }).click();
 
   const link = await mailbox.linkSentTo(staff.email, '/accept-invite?token=');
 

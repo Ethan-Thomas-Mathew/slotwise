@@ -31,6 +31,8 @@ export const StaffDto = z.object({
 export type StaffDto = z.infer<typeof StaffDto>;
 
 export const InviteStaffRequest = z.object({ email: Email, name: PersonName });
+export const InviteStaffResponse = z.object({ inviteLink: z.url() });
+export type InviteStaffResponse = z.infer<typeof InviteStaffResponse>;
 export const SetStaffServicesRequest = z.object({ serviceIds: z.array(Uuid).max(100) });
 
 // ---------- Availability ----------
