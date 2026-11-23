@@ -224,6 +224,46 @@ describe('public booking page', () => {
   });
 });
 
+describe('open days (date picker)', () => {
+  it('counts open slots per day: closed days and fully booked days are 0', async () => {
+    const tenant = await createTestTenant(t.db);
+    const owner = await loginAs(t.app, tenant.owner.email, tenant.slug);
+    const from = futureDate(1);
+    const firstWeekday = DateTime.fromISO(from).weekday;
+    // Works only on the weekday of `from`, 10:00-11:00 (2 slots of 30 min).
+    await owner.put(`/staff/${tenant.staff.membershipId}/availability`, {
+      rules: [{ weekday: firstWeekday, start: '10:00', end: '11:00' }],
+    });
+    const url = (f: string) =>
+      `/public/${tenant.slug}/days?serviceId=${tenant.service.id}&staffId=${tenant.staff.membershipId}&from=${f}&days=14`;
+
+    const res = await t.app.inject({ url: url(from) });
+    expect(res.statusCode).toBe(200);
+    const days = res.json().days as { date: string; openSlots: number }[];
+    expect(days).toHaveLength(14);
+    expect(days[0]).toEqual({ date: from, openSlots: 2 });
+    expect(days[7]!.openSlots).toBe(2); // same weekday next week
+    expect(days.filter((d) => d.openSlots > 0)).toHaveLength(2);
+
+    // Time off for the whole first day → it shows as 0.
+    const day = DateTime.fromISO(from, { zone: 'Asia/Kolkata' });
+    await owner.post(`/staff/${tenant.staff.membershipId}/time-off`, {
+      startAt: day.toISO(),
+      endAt: day.plus({ days: 1 }).toISO(),
+    });
+    const after = (await t.app.inject({ url: url(from) })).json().days;
+    expect(after[0].openSlots).toBe(0);
+    expect(after[7].openSlots).toBe(2);
+  });
+
+  it('validates the query (max 31 days)', async () => {
+    const res = await t.app.inject({
+      url: `/public/${A.slug}/days?serviceId=${A.service.id}&staffId=${A.staff.membershipId}&from=${futureDate()}&days=90`,
+    });
+    expect(res.statusCode).toBe(400);
+  });
+});
+
 describe('tenant settings', () => {
   it('owner updates the cancellation window; unknown timezone is rejected', async () => {
     const res = await ownerA.patch('/tenant/settings', { cancellationWindowHours: 12 });

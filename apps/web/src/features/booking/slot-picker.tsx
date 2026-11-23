@@ -1,20 +1,51 @@
 import { useQuery } from '@tanstack/react-query';
-import type { SlotsResponse } from '@slotwise/shared';
+import type { OpenDaysResponse, SlotsResponse } from '@slotwise/shared';
 import { get } from '../../lib/api';
 import { dt, groupByHour, nextDates } from '../../lib/time';
 import { cx, ErrorState, Loading } from '../../components/ui';
 
-/** Horizontal strip of the next N days. */
+/**
+ * Open-slot counts for the next `days` days, so the strip can grey out closed
+ * or fully booked days and the page can start on the first open one.
+ */
+export function useOpenDays(
+  slug: string,
+  serviceId: string | undefined,
+  staffId: string | undefined,
+  tz: string,
+  days: number,
+) {
+  const from = nextDates(tz, 1)[0]!;
+  const enabled = Boolean(serviceId && staffId);
+  const q = useQuery({
+    queryKey: ['open-days', slug, serviceId, staffId, from, days],
+    queryFn: () =>
+      get<OpenDaysResponse>(
+        `/public/${slug}/days?serviceId=${serviceId}&staffId=${staffId}&from=${from}&days=${days}`,
+      ),
+    enabled,
+    refetchInterval: 60_000,
+  });
+  const counts = q.data
+    ? Object.fromEntries(q.data.days.map((d) => [d.date, d.openSlots]))
+    : undefined;
+  const firstOpen = q.data?.days.find((d) => d.openSlots > 0)?.date;
+  return { counts, firstOpen };
+}
+
+/** Horizontal strip of the next N days. Days with no open times are greyed out. */
 export function DateStrip({
   tz,
   days,
   value,
   onChange,
+  openSlots,
 }: {
   tz: string;
   days: number;
   value: string;
   onChange: (date: string) => void;
+  openSlots?: Record<string, number> | undefined;
 }) {
   const dates = nextDates(tz, days);
   return (
@@ -26,17 +57,21 @@ export function DateStrip({
       {dates.map((d) => {
         const day = dt(d, tz);
         const selected = d === value;
+        const none = openSlots !== undefined && !openSlots[d];
         return (
           <button
             key={d}
             role="radio"
             aria-checked={selected}
+            aria-label={`${day.toFormat('cccc d LLLL')}${none ? ', no open times' : ''}`}
             onClick={() => onChange(d)}
             className={cx(
               'flex min-w-14 shrink-0 flex-col items-center rounded-[var(--radius-control)] border px-2 py-2 transition-colors',
               selected
                 ? 'border-peacock bg-peacock text-white'
-                : 'border-line bg-surface hover:border-ink/40',
+                : none
+                  ? 'border-dashed border-line bg-transparent text-muted'
+                  : 'border-line bg-surface hover:border-ink/40',
             )}
           >
             <span className={cx('text-xs', selected ? 'text-white/80' : 'text-muted')}>

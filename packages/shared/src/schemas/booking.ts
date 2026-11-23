@@ -44,6 +44,18 @@ export const SlotsResponse = z.object({
 });
 export type SlotsResponse = z.infer<typeof SlotsResponse>;
 
+export const OpenDaysQuery = z.object({
+  serviceId: Uuid,
+  staffId: Uuid,
+  from: IsoDate,
+  days: z.coerce.number().int().min(1).max(31).default(21),
+});
+export const OpenDaysResponse = z.object({
+  timezone: z.string(),
+  days: z.array(z.object({ date: IsoDate, openSlots: z.number().int() })),
+});
+export type OpenDaysResponse = z.infer<typeof OpenDaysResponse>;
+
 // ---------- Bookings ----------
 export const HoldRequest = z.object({ serviceId: Uuid, staffId: Uuid, startAt: IsoDateTime });
 export type HoldRequest = z.infer<typeof HoldRequest>;

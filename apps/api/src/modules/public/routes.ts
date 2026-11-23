@@ -1,10 +1,17 @@
 import type { FastifyInstance } from 'fastify';
-import { PublicTenantResponse, Slug, SlotsQuery, SlotsResponse } from '@slotwise/shared';
+import {
+  OpenDaysQuery,
+  OpenDaysResponse,
+  PublicTenantResponse,
+  Slug,
+  SlotsQuery,
+  SlotsResponse,
+} from '@slotwise/shared';
 import type { AppDeps } from '../../app';
 import { withTenant } from '../../db/tenant-tx';
 import { notFound } from '../../lib/errors';
 import { iso, parse, respond } from '../../lib/validate';
-import { findSlots } from '../availability/service';
+import { findOpenDays, findSlots } from '../availability/service';
 import { toServiceDto } from '../services/routes';
 import { listServices } from '../services/repo';
 import { listStaff } from '../staff/repo';
@@ -56,5 +63,12 @@ export async function publicRoutes(app: FastifyInstance, { db }: AppDeps) {
       timezone: result.timezone,
       slots: result.slots.map((s) => ({ startAt: iso(s.startAt), endAt: iso(s.endAt) })),
     });
+  });
+
+  /** Open-slot counts per day, so the date picker can show closed/full days. */
+  app.get('/public/:slug/days', async (req) => {
+    const tenant = await tenantFromSlug((req.params as { slug: string }).slug);
+    const q = parse(OpenDaysQuery, req.query);
+    return respond(OpenDaysResponse, await withTenant(db, tenant.id, (tx) => findOpenDays(tx, q)));
   });
 }

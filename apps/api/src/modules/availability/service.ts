@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon';
 import type { TenantTx } from '../../db/tenant-tx';
 import { notFound } from '../../lib/errors';
 import { listBusyIntervals } from '../bookings/repo';
@@ -7,39 +8,42 @@ import { getTenant } from '../tenants/repo';
 import { listRules, listTimeOff } from './repo';
 import { generateSlots, localDayRange, type Interval } from './slots';
 
+type ServiceRow = NonNullable<Awaited<ReturnType<typeof getService>>>;
+
 /**
- * Loads everything the pure slot generator needs from the database and runs it.
- * Used by the public slots endpoint AND by the hold endpoint (to check the
- * requested time really is an available slot).
+ * Loads everything the pure slot generator needs for a range of dates, ONCE,
+ * and returns a function that computes the slots for any date in that range.
  */
-export async function findSlots(
+async function loadCalendar(
   tx: TenantTx,
-  q: { serviceId: string; staffId: string; date: string; excludeBookingId?: string },
-  now = new Date(),
-): Promise<{
-  timezone: string;
-  slots: Interval[];
-  service: NonNullable<Awaited<ReturnType<typeof getService>>>;
-}> {
+  q: {
+    serviceId: string;
+    staffId: string;
+    firstDate: string;
+    lastDate: string;
+    excludeBookingId?: string;
+  },
+  now: Date,
+) {
   const tenant = await getTenant(tx);
   const service = await getService(tx, q.serviceId);
   if (!service || !service.active) throw notFound('Service');
   const staff = await getStaffMember(tx, q.staffId);
-  if (!staff || !(await staffOffersService(tx, q.staffId, q.serviceId)))
+  if (!staff || !(await staffOffersService(tx, q.staffId, q.serviceId))) {
     throw notFound('Staff member');
+  }
 
-  const range = localDayRange(q.date, tenant.timezone);
-  if (!range) return { timezone: tenant.timezone, slots: [], service };
-  const range2 = { from: range.startAt, to: range.endAt };
+  const first = localDayRange(q.firstDate, tenant.timezone);
+  const last = localDayRange(q.lastDate, tenant.timezone);
+  if (!first || !last) return { tenant, service, slotsOn: (_date: string): Interval[] => [] };
+  const range = { from: first.startAt, to: last.endAt };
 
   const [rules, timeOff, busy] = await Promise.all([
     listRules(tx, q.staffId),
-    listTimeOff(tx, q.staffId, range2),
-    listBusyIntervals(tx, q.staffId, range2, { excludeBookingId: q.excludeBookingId }),
+    listTimeOff(tx, q.staffId, range),
+    listBusyIntervals(tx, q.staffId, range, { excludeBookingId: q.excludeBookingId }),
   ]);
-
-  const slots = generateSlots({
-    date: q.date,
+  const input = {
     timezone: tenant.timezone,
     rules: rules.map((r) => ({
       weekday: r.weekday,
@@ -51,6 +55,43 @@ export async function findSlots(
     durationMinutes: service.duration_minutes,
     now,
     horizonDays: tenant.booking_horizon_days,
-  });
-  return { timezone: tenant.timezone, slots, service };
+  };
+  return { tenant, service, slotsOn: (date: string) => generateSlots({ ...input, date }) };
+}
+
+/**
+ * The open slots on one date. Used by the public slots endpoint AND by the
+ * hold/reschedule endpoints (to check the requested time really is available).
+ */
+export async function findSlots(
+  tx: TenantTx,
+  q: { serviceId: string; staffId: string; date: string; excludeBookingId?: string },
+  now = new Date(),
+): Promise<{ timezone: string; slots: Interval[]; service: ServiceRow }> {
+  const cal = await loadCalendar(tx, { ...q, firstDate: q.date, lastDate: q.date }, now);
+  return { timezone: cal.tenant.timezone, slots: cal.slotsOn(q.date), service: cal.service };
+}
+
+/**
+ * How many open slots each of the next `days` dates has, starting at `from`.
+ * Lets the booking page grey out closed or full days and jump to the first
+ * open one, with three database queries instead of one request per day.
+ */
+export async function findOpenDays(
+  tx: TenantTx,
+  q: { serviceId: string; staffId: string; from: string; days: number },
+  now = new Date(),
+): Promise<{ timezone: string; days: { date: string; openSlots: number }[] }> {
+  const start = DateTime.fromISO(q.from);
+  if (!start.isValid) return { timezone: (await getTenant(tx)).timezone, days: [] };
+  const dates = Array.from({ length: q.days }, (_, i) => start.plus({ days: i }).toISODate()!);
+  const cal = await loadCalendar(
+    tx,
+    { serviceId: q.serviceId, staffId: q.staffId, firstDate: dates[0]!, lastDate: dates.at(-1)! },
+    now,
+  );
+  return {
+    timezone: cal.tenant.timezone,
+    days: dates.map((date) => ({ date, openSlots: cal.slotsOn(date).length })),
+  };
 }

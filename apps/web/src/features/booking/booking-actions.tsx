@@ -8,7 +8,7 @@ import { dt, fmtDateTime, fmtTime, nextDates } from '../../lib/time';
 import { Alert, Button, Dialog, StatusBadge } from '../../components/ui';
 import { useToast } from '../../components/toast';
 import { useNow } from '../../lib/use-now';
-import { DateStrip, SlotTimeline } from './slot-picker';
+import { DateStrip, SlotTimeline, useOpenDays } from './slot-picker';
 
 function useInvalidateBookings() {
   const qc = useQueryClient();
@@ -145,6 +145,14 @@ function RescheduleDialog({ booking, onClose }: { booking: BookingDto; onClose: 
     return nextDates(tz, 60).includes(d) ? d : nextDates(tz, 1)[0]!;
   });
   const [time, setTime] = useState<string | null>(null);
+  const stripDays = Math.min(tenant.bookingHorizonDays, 21);
+  const openDays = useOpenDays(
+    tenant.slug,
+    booking.service.id,
+    booking.staff.membershipId,
+    tz,
+    stripDays,
+  );
   const move = useMutation({
     mutationFn: () => post<BookingDto>(`/bookings/${booking.id}/reschedule`, { startAt: time }),
     onSuccess: () => {
@@ -161,8 +169,9 @@ function RescheduleDialog({ booking, onClose }: { booking: BookingDto; onClose: 
       </p>
       <DateStrip
         tz={tz}
-        days={Math.min(tenant.bookingHorizonDays, 21)}
+        days={stripDays}
         value={date}
+        openSlots={openDays.counts}
         onChange={(d) => {
           setDate(d);
           setTime(null);

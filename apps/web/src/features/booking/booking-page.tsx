@@ -7,7 +7,7 @@ import { useMe, useSwitchTenant } from '../../lib/auth';
 import { fmtDayLong, fmtTime, nextDates } from '../../lib/time';
 import { Alert, Button, cx, ErrorState, Loading } from '../../components/ui';
 import { Wordmark } from '../../components/layout';
-import { DateStrip, SlotTimeline } from './slot-picker';
+import { DateStrip, SlotTimeline, useOpenDays } from './slot-picker';
 
 /**
  * The public page customers land on: /b/{slug}.
@@ -29,7 +29,10 @@ export function BookingPage() {
   const tz = page.data?.tenant.timezone ?? 'Asia/Kolkata';
   const serviceId = params.get('service');
   const staffId = params.get('staff');
-  const date = params.get('date') ?? nextDates(tz, 1)[0]!;
+  const stripDays = Math.min(page.data?.tenant.bookingHorizonDays ?? 21, 21);
+  const openDays = useOpenDays(slug, serviceId ?? undefined, staffId ?? undefined, tz, stripDays);
+  // Until the customer picks a day, show the first day that has open times.
+  const date = params.get('date') ?? openDays.firstOpen ?? nextDates(tz, 1)[0]!;
   const time = params.get('time');
 
   const set = (changes: Record<string, string | null>) => {
@@ -107,7 +110,7 @@ export function BookingPage() {
 
   return (
     <Shell>
-      <div className="grid gap-10 lg:grid-cols-[22rem_minmax(0,1fr)]">
+      <div className="grid gap-2 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-10">
         {/* Left: who and what */}
         <div className="lg:sticky lg:top-6 lg:self-start">
           <h1 className="text-4xl font-semibold leading-tight">{t.name}</h1>
@@ -189,10 +192,17 @@ export function BookingPage() {
             <Step n={3} title="Pick a time">
               <DateStrip
                 tz={tz}
-                days={Math.min(t.bookingHorizonDays, 21)}
+                days={stripDays}
                 value={date}
+                openSlots={openDays.counts}
                 onChange={(d) => set({ date: d, time: null })}
               />
+              {openDays.counts && !openDays.firstOpen && (
+                <p className="mt-2 text-sm text-muted">
+                  {staff.name} has no open times in the next {stripDays} days. Try someone else, or
+                  check back later.
+                </p>
+              )}
               <div className="mt-5">
                 <SlotTimeline
                   slug={slug}
