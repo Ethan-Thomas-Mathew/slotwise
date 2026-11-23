@@ -182,3 +182,25 @@ Each entry: **Decision → Alternatives considered → Why this one → Trade-of
 
 - **Decision:** With `PAYMENTS_PROVIDER=mock`, orders are fake and a dev-only route (`/dev/mock-payments/:orderId/capture`, disabled in production) builds a Razorpay-shaped webhook, signs it with the webhook secret and sends it to the **real** webhook endpoint.
 - **Why:** Anyone can run the full flow locally and in E2E tests without Razorpay keys, and the code path being tested is the production one.
+
+## D29. Separate worker process, BullMQ queues per job type
+
+- **Decision:** `src/worker.ts` runs BullMQ workers for five queues: `emails`, `holds`, `notifications`, `refunds`, `maintenance`. Job ids are deterministic (`hold-<bookingId>`, `notification-<id>`, `refund-<paymentId>`).
+- **Why:** Slow or failing work (SMTP, Razorpay) never slows down HTTP requests, and the API and workers scale separately. Deterministic ids mean the same work is never queued twice, and a rescheduled reminder can find and replace its old job.
+- **Retries:** 6 attempts, exponential backoff starting at 5 s. A notification that fails every attempt becomes `FAILED` in the database, so owners see it on the dashboard and can retry it with one click.
+- **Gotcha we handle:** BullMQ ignores `add()` for an id that still exists, and failed jobs are kept for a week. So `enqueueRefund` revives a failed job with `retry()` instead of silently doing nothing (tested).
+
+## D30. Workers re-check the database before acting
+
+- **Decision:** Every job reads the current row (with `FOR UPDATE`) and decides whether it still applies. Examples: the reminder is still PENDING and due; the booking is still CONFIRMED; the hold is still HELD and past its expiry; the payment is still REFUND_PENDING.
+- **Why:** Jobs can be stale (the booking was rescheduled), duplicated (at-least-once delivery) or early. Treating the database as the truth makes every job idempotent, which is what makes retries and the reconciler safe.
+
+## D31. A reconciler instead of trusting the queue
+
+- **Decision:** A repeatable `reconcile` job runs every minute. It expires stale holds, re-queues due notifications that never got a job, and re-queues refunds stuck in REFUND_PENDING.
+- **Why:** Jobs are queued after commit. If Redis is down at that moment, the work is still recorded in Postgres (outbox), and the reconciler catches up within a minute. Redis can be lost without losing emails or refunds.
+
+## D32. Email delivery is at-least-once
+
+- **Decision:** The worker sends the email, then marks the row SENT in the same transaction.
+- **Trade-off:** If the process dies after the SMTP server accepted the email but before the commit, the retry sends it again. A rare duplicate email is better than a lost confirmation. (Exactly-once email would need provider-side idempotency keys.)

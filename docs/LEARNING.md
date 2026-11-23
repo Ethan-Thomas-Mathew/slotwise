@@ -193,3 +193,33 @@ Customer clicks Pay
 - **Idempotency key:** a unique id that lets you detect repeats (here `event_id`).
 - **Source of truth:** the system whose answer wins when two disagree (Razorpay, not the browser).
 - **Savepoint:** a partial-rollback point inside a transaction.
+
+---
+
+## Phase 6: Notifications and background jobs
+
+**What was built:** the worker process (`pnpm worker`), email templates, confirmation / 24-hour reminder / cancellation / late-payment-refund emails, retries with backoff, a failed-email list owners can retry, and an every-minute "reconciler" safety net.
+
+**How an email gets sent:**
+
+1. Inside the same transaction that confirms a booking, we insert rows into `notifications` (status PENDING): one "confirmed" for now, one "reminder" for 24 hours before the start.
+2. After the commit, we add BullMQ jobs: `notification-<id>`, delayed until its time.
+3. The worker picks the job up, locks the row, checks it still makes sense (still PENDING? booking still confirmed?), renders the email and sends it over SMTP.
+4. Success → SENT. Failure → `attempts + 1`, BullMQ retries after 5 s, 10 s, 20 s… After the last try → FAILED, visible to the owner.
+
+**What happens when things change:**
+
+- _Cancel:_ the reminder row becomes CANCELLED and its job is removed; a cancellation email is created.
+- _Reschedule:_ the old reminder is cancelled, a new one is created for the new time.
+- _A job arrives anyway (stale):_ the worker sees the row isn't PENDING or isn't due, and skips it.
+
+**Why a reconciler:** queues can lose jobs (Redis restart, a crash right after commit). Because the _intent_ is stored in Postgres, a job that runs every minute finds anything overdue and re-queues it. That's the outbox pattern paying off.
+
+**Concepts:**
+
+- **Message queue / job queue:** a list of work for background workers. BullMQ stores it in Redis.
+- **Delayed job:** a job that becomes runnable at a future time.
+- **Exponential backoff:** waiting longer after each failure (5 s, 10 s, 20 s…) so a struggling service can recover.
+- **At-least-once vs exactly-once:** queues guarantee a job runs _at least_ once; your code makes repeats harmless.
+- **Reconciliation:** periodically comparing "what should have happened" with "what did" and fixing the gap.
+- **SMTP:** the protocol for sending email. Mailpit is a fake SMTP server with a web UI for development.

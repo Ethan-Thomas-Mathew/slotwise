@@ -28,6 +28,9 @@ jobs:
         options: >-
           --health-cmd "redis-cli ping" --health-interval 5s
           --health-timeout 5s --health-retries 10
+      mailpit:
+        image: axllent/mailpit:latest
+        ports: ['1025:1025', '8025:8025']
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -49,4 +52,6 @@ jobs:
       - run: pnpm typecheck
       - name: Unit + integration tests
         run: pnpm test
+        env:
+          MAILPIT_URL: http://localhost:8025
       - run: pnpm build

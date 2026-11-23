@@ -37,10 +37,14 @@ export class BullJobs implements Jobs {
   }
 
   async enqueueRefund(tenantId: string, paymentId: string) {
-    await this.queues.refunds.add(
-      'refund',
-      { tenantId, paymentId },
-      { jobId: `refund-${paymentId}` },
-    );
+    const jobId = `refund-${paymentId}`;
+    // A job that used up all its retries is kept (as "failed") for a week, and
+    // BullMQ ignores add() for an id that still exists, so retry it instead.
+    const existing = await this.queues.refunds.getJob(jobId);
+    if (existing) {
+      if (await existing.isFailed()) await existing.retry();
+      return;
+    }
+    await this.queues.refunds.add('refund', { tenantId, paymentId }, { jobId });
   }
 }

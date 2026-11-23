@@ -17,6 +17,10 @@ BEGIN
 END
 $$;
 
+-- Lets the test setup drop the test database even if a crashed test run
+-- left connections open (it can't signal superuser connections).
+GRANT pg_signal_backend TO slotwise_owner;
+
 -- Every table/sequence the owner creates is automatically usable by the app role.
 ALTER DEFAULT PRIVILEGES FOR ROLE slotwise_owner
   GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO slotwise_app;
