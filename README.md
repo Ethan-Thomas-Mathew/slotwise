@@ -89,11 +89,11 @@ More diagrams (request lifecycle, payment sequence, booking states) are in [`doc
 
 ## Tests
 
-| Level       | What                                                                                                                                                      | Count                     | Run             |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------- |
-| Unit        | Slot generator (DST, day boundaries, time off…), state machine (all 36 transitions), cancellation policy, frontend helpers                                | 76 API + 9 web + 1 shared | `pnpm test`     |
-| Integration | Real HTTP (Fastify `inject`) against real Postgres and Redis: auth, roles, tenant isolation, bookings, concurrency, payments, webhooks, jobs, SMTP        | 209                       | `pnpm test`     |
-| End-to-end  | Real Chrome: owner signup → service + hours → customer books and pays → owner sees it → customer cancels → refund; axe accessibility checks on main pages | 11                        | `pnpm test:e2e` |
+| Level       | What                                                                                                                                                                                                                         | Count                     | Run             |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------- |
+| Unit        | Slot generator (DST, day boundaries, time off…), state machine (all 36 transitions), cancellation policy, frontend helpers                                                                                                   | 76 API + 9 web + 1 shared | `pnpm test`     |
+| Integration | Real HTTP (Fastify `inject`) against real Postgres and Redis: auth, roles, tenant isolation, bookings, concurrency, payments, webhooks, jobs, SMTP                                                                           | 209                       | `pnpm test`     |
+| End-to-end  | Real Chrome: owner signup → service + hours → customer books and pays → owner sees it → customer cancels → refund; staff invite and password reset by following the real email links; axe accessibility checks on main pages | 13                        | `pnpm test:e2e` |
 
 The integration tests create a fresh `slotwise_test` database and migrate it before every run. Each test makes its own tenants, so tests never depend on each other.
 
@@ -140,7 +140,7 @@ Requirements: Node 22, pnpm 10, Docker.
 - **Emails are at-least-once:** a crash at the wrong moment can send a duplicate email; it never loses one.
 - **Fixed slot grid** (steps of the service length): tidy times, but small gaps can go unused.
 - **INR only, Razorpay only.** No tax/GST invoices.
-- Staff invites need a working email (Mailpit locally). There's no "copy invite link" fallback yet.
+- Staff invites need a working email (Mailpit locally). There's no "copy invite link" fallback yet, so an owner without email set up can't add staff.
 - Not yet deployed; the deployment guide is written but untested.
 
 ## What I'd build next
