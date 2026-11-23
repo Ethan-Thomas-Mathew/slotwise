@@ -248,11 +248,14 @@ export function Dialog({
   onClose,
   title,
   children,
+  wide,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
+  /** For dialogs with forms that need more room (e.g. weekly hours). */
+  wide?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -266,7 +269,10 @@ export function Dialog({
       ref={ref}
       onClose={onClose}
       aria-labelledby="dialog-title"
-      className="m-auto max-h-[90dvh] w-[min(34rem,calc(100vw-2rem))] overflow-y-auto rounded-[var(--radius-panel)] border border-line bg-surface p-0 text-ink backdrop:bg-ink/40"
+      className={cx(
+        'm-auto max-h-[90dvh] overflow-y-auto rounded-[var(--radius-panel)] border border-line bg-surface p-0 text-ink backdrop:bg-ink/40',
+        wide ? 'w-[min(42rem,calc(100vw-2rem))]' : 'w-[min(34rem,calc(100vw-2rem))]',
+      )}
     >
       {open && (
         <div className="p-6">

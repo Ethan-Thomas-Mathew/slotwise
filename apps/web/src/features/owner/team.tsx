@@ -226,7 +226,7 @@ function HoursDialog({ staff, onClose }: { staff: StaffDto; onClose: () => void 
   });
 
   return (
-    <Dialog open onClose={onClose} title={`${staff.name}'s working hours`}>
+    <Dialog open wide onClose={onClose} title={`${staff.name}'s working hours`}>
       {q.isPending ? (
         <Loading />
       ) : q.isError ? (
@@ -237,15 +237,15 @@ function HoursDialog({ staff, onClose }: { staff: StaffDto; onClose: () => void 
             {WEEKDAYS.map((day, i) => (
               <li
                 key={day}
-                className="grid grid-cols-[5.5rem_1fr] items-start gap-x-3 gap-y-1 py-3 sm:grid-cols-[6rem_1fr_auto]"
+                className="grid grid-cols-1 items-start gap-x-3 gap-y-1.5 py-3 sm:grid-cols-[6rem_1fr_auto]"
               >
-                <span className="pt-2 text-sm font-medium">{day}</span>
+                <span className="text-sm font-medium sm:pt-2">{day}</span>
                 <div className="flex flex-col gap-2">
                   {current[i]!.length === 0 && (
                     <span className="pt-2 text-sm text-muted">Not working</span>
                   )}
                   {current[i]!.map((r, k) => (
-                    <div key={k} className="flex items-center gap-2">
+                    <div key={k} className="flex flex-wrap items-center gap-2">
                       <input
                         type="time"
                         aria-label={`${day} start`}
@@ -258,7 +258,7 @@ function HoursDialog({ staff, onClose }: { staff: StaffDto; onClose: () => void 
                             ),
                           )
                         }
-                        className="tabular h-9 rounded-[var(--radius-control)] border border-line px-2"
+                        className="tabular h-9 w-[8.5rem] rounded-[var(--radius-control)] border border-line px-2"
                       />
                       <span className="text-sm text-muted">to</span>
                       <input
@@ -273,10 +273,10 @@ function HoursDialog({ staff, onClose }: { staff: StaffDto; onClose: () => void 
                             ),
                           )
                         }
-                        className="tabular h-9 rounded-[var(--radius-control)] border border-line px-2"
+                        className="tabular h-9 w-[8.5rem] rounded-[var(--radius-control)] border border-line px-2"
                       />
                       <button
-                        className="px-1 text-muted hover:text-danger"
+                        className="px-1 text-sm text-muted underline-offset-2 hover:text-danger hover:underline"
                         aria-label={`Remove ${day} hours`}
                         onClick={() =>
                           update(
@@ -285,13 +285,13 @@ function HoursDialog({ staff, onClose }: { staff: StaffDto; onClose: () => void 
                           )
                         }
                       >
-                        ×
+                        Remove
                       </button>
                     </div>
                   ))}
                 </div>
                 <button
-                  className="col-start-2 justify-self-start pt-1 text-sm text-peacock hover:underline sm:col-start-3 sm:pt-2"
+                  className="justify-self-start text-sm text-peacock hover:underline sm:col-start-3 sm:pt-2"
                   onClick={() => {
                     const last = current[i]!.at(-1);
                     update(i, [
