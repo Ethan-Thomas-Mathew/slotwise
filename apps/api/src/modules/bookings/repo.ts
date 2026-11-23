@@ -104,6 +104,23 @@ export async function listBusyIntervals(
 }
 
 /**
+ * Queues writers for ONE staff member's calendar, until this transaction ends.
+ *
+ * Why: with an exclusion constraint, two transactions inserting overlapping
+ * rows at the same instant can each wait for the other's uncommitted row
+ * → Postgres "deadlock detected" (found by the 20-request concurrency test).
+ * Taking this lock first means they insert one after another: the first wins,
+ * the next gets a clean exclusion violation (409) immediately.
+ * The constraint is still what guarantees correctness; the lock only stops
+ * the deadlock. Different staff members never wait for each other.
+ */
+export async function lockStaffCalendar(tx: TenantTx, staffMembershipId: string) {
+  await sql`SELECT pg_advisory_xact_lock(hashtextextended(${'staff-calendar:' + staffMembershipId}, 0))`.execute(
+    tx.db,
+  );
+}
+
+/**
  * Marks this staff member's overlapping holds that have already timed out as
  * EXPIRED. Run just before inserting a new hold, so a late expiry job can never
  * block a free slot.

@@ -120,3 +120,32 @@ Each entry: **Decision → Alternatives considered → Why this one → Trade-of
 
 - **Why:** Old bookings and payments reference the service. Deleting it would break history and reports. Deactivating hides it from the booking page.
 - **Same idea for staff:** removing a staff member downgrades them to customer and removes their hours, so their past bookings still point at a real membership. Removal is refused while they have upcoming bookings.
+
+## D19. Per-staff advisory lock in front of the exclusion constraint
+
+- **Decision:** Before inserting or moving a booking, the transaction takes `pg_advisory_xact_lock(hash('staff-calendar:' + staffId))`.
+- **What we found:** The first version relied on the exclusion constraint alone. The 20-parallel-requests test then failed about 1 run in 4. With exclusion constraints, two transactions inserting overlapping rows at the same moment can each wait on the other's uncommitted row. Postgres then reports **`deadlock detected`** after `deadlock_timeout` (1 s), one victim at a time. There was never a double booking, but losers got 500 errors after up to 20 seconds.
+- **Alternatives:** Retry on deadlock (still slow and noisy); `SERIALIZABLE` isolation (needs retries everywhere); `SELECT … FOR UPDATE` on a staff row (similar effect, but needs a row to lock).
+- **Why:** The lock makes writers for the **same** staff member take turns, so there's no deadlock: the first wins, the rest get an instant, clean `23P01` → 409. Writers for different staff never wait for each other. The exclusion constraint is still the real guarantee; the lock just avoids the deadlock. The test also asserts that some losers were stopped by the constraint itself (≈ 120 of 190), proving the race really happens.
+- **Trade-off:** Booking writes for one staff member are serialized. Each takes milliseconds, so this only matters at a scale far beyond small businesses.
+
+## D20. Booking changes go through one state machine and "compare-and-set" updates
+
+- **Decision:** `transitionBooking(from, to)` holds the only list of legal moves (unit-tested for all 36 pairs). Updates are written as `UPDATE … WHERE id = ? AND status = <expected>`, and the row is locked with `SELECT … FOR UPDATE` first.
+- **Why:** Two concurrent actions (a customer cancelling while the payment webhook confirms) can't both apply; the second sees the row changed and gets a 409.
+
+## D21. Hold limits and stale-hold sweeping
+
+- **Decision:** A customer can hold at most 3 unpaid slots at once. Before inserting a hold, any timed-out holds overlapping the slot are marked EXPIRED in the same transaction. Slot listing already ignores timed-out holds.
+- **Why:** Stops one person from blocking a whole day, and means a late or lost expiry job can never keep a slot blocked.
+
+## D22. Side effects run after commit (with an outbox safety net)
+
+- **Decision:** Services push "enqueue job X" closures into an `effects` list, which runs only after the transaction commits. Emails are rows in `notifications` (an outbox) written in the same transaction as the booking change.
+- **Why:** Queueing inside a transaction that later rolls back would act on changes that never happened. If enqueueing fails after commit, the data is still in the database and the reconciler job (Phase 6) picks it up.
+- **Trade-off:** Slight delay possible before the safety net notices (about a minute).
+
+## D23. Cancellation policy
+
+- **Decision:** Customers may cancel their own upcoming booking at any time. They get a **full refund** if they cancel at least `cancellation_window_hours` before the start (the boundary counts as on time), otherwise no refund. They may reschedule only inside that same free window. Owners can always cancel or reschedule, and owner cancellations are always refunded. Staff can't cancel or reschedule.
+- **Why:** Matches how salons and clinics usually work, and keeps the rule in one pure, unit-tested function (`bookingPolicy`) that the API also uses to tell the UI whether to show the buttons.

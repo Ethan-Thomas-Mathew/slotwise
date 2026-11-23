@@ -119,3 +119,38 @@ It's a **pure function**: it gets everything it needs as arguments and doesn't t
 - **Audit log:** an append-only history of who changed what.
 - **Soft delete / deactivate:** hide something instead of deleting it, to preserve history.
 - **HTTP 404 vs 403:** 404 hides whether something exists; 403 says it exists but you can't have it.
+
+---
+
+## Phase 4: Booking and concurrency
+
+**What was built:** holding a slot, the booking state machine, cancelling, rescheduling, marking completed/no-show, listing bookings for each role, the hold-expiry job logic, and the big **concurrency test**.
+
+**The hold flow** (`src/modules/bookings/service.ts → holdSlot`):
+
+1. Check the requested time is a real available slot (reuses the slot generator).
+2. Check the customer doesn't already hold 3 unpaid slots.
+3. Take an advisory lock for that staff member's calendar.
+4. Mark any timed-out holds in the way as EXPIRED.
+5. INSERT the booking as HELD for 10 minutes. If Postgres says `23P01` (exclusion violation), return **409 "Someone just took that slot"**.
+6. After commit, schedule a job to expire the hold.
+
+**The concurrency story (great interview material):**
+
+- A naive app does "SELECT: is it free? → INSERT". Two requests can both see "free" and both insert. That's a **race condition**.
+- We let the **database** decide with an exclusion constraint. Only one overlapping row can exist.
+- Our test fires 20 requests at once, ten times. At first it failed about 1 run in 4: Postgres reported **deadlocks**, because two inserts were each waiting for the other. Nothing was double-booked, but some customers got a 500 after waiting seconds.
+- Fix: a per-staff **advisory lock** so writers take turns. Now it's always exactly 1 × 201 and 19 × 409, fast, and the test proves ~120 of the 190 losers were stopped by the constraint itself.
+
+**Rescheduling is one UPDATE** of the same row, so there's never a moment where the customer has both slots or neither.
+
+**Concepts:**
+
+- **Race condition:** the result depends on the timing of concurrent operations.
+- **Deadlock:** two transactions each waiting for a lock the other holds. The database kills one.
+- **Advisory lock:** a lock on an arbitrary number that your app chooses; `pg_advisory_xact_lock` releases automatically at commit or rollback.
+- **`SELECT … FOR UPDATE`:** read a row and lock it so no one else changes it until you commit.
+- **Compare-and-set:** "update only if it's still in the state I expect".
+- **State machine:** a fixed set of states and allowed moves between them.
+- **Idempotent:** doing it twice has the same effect as doing it once (e.g. the expiry job).
+- **Outbox pattern:** write "messages to send" into the database in the same transaction as the change; a separate process sends them.

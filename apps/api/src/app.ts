@@ -12,6 +12,7 @@ import { registerAuth } from './plugins/auth';
 import { registerErrorHandler } from './plugins/error-handler';
 import { authRoutes } from './modules/auth/routes';
 import { auditRoutes } from './modules/audit/routes';
+import { bookingRoutes } from './modules/bookings/routes';
 import { publicRoutes } from './modules/public/routes';
 import { serviceRoutes } from './modules/services/routes';
 import { staffRoutes } from './modules/staff/routes';
@@ -94,6 +95,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await serviceRoutes(app, deps);
   await staffRoutes(app, deps);
   await auditRoutes(app, deps);
+  await bookingRoutes(app, deps);
 
   return app;
 }
