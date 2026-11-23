@@ -204,3 +204,25 @@ Each entry: **Decision → Alternatives considered → Why this one → Trade-of
 
 - **Decision:** The worker sends the email, then marks the row SENT in the same transaction.
 - **Trade-off:** If the process dies after the SMTP server accepted the email but before the commit, the retry sends it again. A rare duplicate email is better than a lost confirmation. (Exactly-once email would need provider-side idempotency keys.)
+
+## D33. Frontend: server state in TanStack Query, selection state in the URL
+
+- **Decision:** Everything that comes from the API is fetched and cached with TanStack Query (no global store). The booking page keeps the customer's choice (service, person, date, time) in the URL query string.
+- **Why:** Query handles loading/error states, retries and refetching, so components stay small. Putting the selection in the URL means it survives the "log in to book" detour and the page can be shared or refreshed without losing the choice.
+- **Trade-off:** More query keys to invalidate after changes (handled in one helper, `useInvalidateBookings`).
+
+## D34. The browser never decides a booking is paid
+
+- **Decision:** After payment the checkout page shows "Confirming your payment" and polls the booking every 1.5 s until the webhook has confirmed it, giving up politely after a minute.
+- **Why:** Matches the backend rule (D24): the payment provider's webhook is the source of truth.
+
+## D35. All times shown in the business's timezone
+
+- **Decision:** The frontend formats every time with the tenant's timezone (`lib/time.ts`), never the browser's.
+- **Why:** A customer travelling abroad must still see "10:00" for a 10:00 appointment in Bengaluru.
+
+## D36. Design system: few tokens, one loud element
+
+- **Decision:** Mineral paper background, deep slate ink, peacock teal for actions, and **marigold only for time-sensitive things** (the held slot, the countdown). Bricolage Grotesque for headings, Onest for text, both self-hosted (no third-party font requests). The booking timeline (an hour rail like a page of an appointment book) is the one distinctive element; everything else is quiet.
+- **Why:** Small businesses in India are the audience. A calm, readable UI with one clear signal for "this is held for you, act now" helps customers more than decoration.
+- **Accessibility floor:** labelled fields with errors linked by `aria-describedby`, radio groups for choices, native `<dialog>` for modals (focus handling and Escape built in), visible focus rings, `prefers-reduced-motion` respected, skip link, `aria-live` toasts.

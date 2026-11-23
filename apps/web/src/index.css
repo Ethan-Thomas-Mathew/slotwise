@@ -1,1 +1,62 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/bricolage-grotesque';
+@import '@fontsource-variable/onest';
+
+/*
+ * Slotwise design tokens.
+ * Mineral paper + deep slate ink, peacock teal for actions, marigold only for
+ * things that are time-sensitive (a held slot, a countdown). Flat surfaces
+ * separated by hairlines; no decorative shadows or gradients.
+ */
+@theme {
+  --color-paper: #f4f6f5;
+  --color-surface: #ffffff;
+  --color-ink: #18282a;
+  --color-muted: #5a6c6b;
+  --color-line: #d5dedc;
+  --color-peacock: #0e6b68;
+  --color-peacock-dark: #0a504e;
+  --color-peacock-tint: #e3efed;
+  --color-marigold: #e3a008;
+  --color-marigold-tint: #fdf3d7;
+  --color-danger: #b42318;
+  --color-danger-tint: #fdecea;
+
+  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Onest Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-control: 8px;
+  --radius-panel: 14px;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background: var(--color-paper);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-marigold);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

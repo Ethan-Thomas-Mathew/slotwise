@@ -38,6 +38,7 @@ export const InvitePreviewResponse = z.object({
   email: z.string(),
   userExists: z.boolean(),
 });
+export type InvitePreviewResponse = z.infer<typeof InvitePreviewResponse>;
 
 export const AcceptInviteRequest = z.object({
   token: z.string().min(10).max(200),

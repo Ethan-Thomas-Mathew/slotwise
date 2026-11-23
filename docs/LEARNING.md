@@ -223,3 +223,30 @@ Customer clicks Pay
 - **At-least-once vs exactly-once:** queues guarantee a job runs _at least_ once; your code makes repeats harmless.
 - **Reconciliation:** periodically comparing "what should have happened" with "what did" and fixing the gap.
 - **SMTP:** the protocol for sending email. Mailpit is a fake SMTP server with a web UI for development.
+
+---
+
+## Phase 7: Frontend and dashboards
+
+**What was built:** the React app: landing page, sign up / log in / reset password / accept invite, the public booking page, checkout with a live hold countdown, customer "my bookings", the staff schedule (day/week), and owner pages (overview, bookings with filters, services, team and hours, time off, settings, activity log, email problems).
+
+**How the frontend is organised (`apps/web/src`):**
+
+- `lib/api.ts`: the only place that calls `fetch`. It adds cookies and the CSRF header, and turns API errors into `ApiError` (with field-level messages for forms).
+- `lib/auth.ts`: hooks like `useMe()`, `useLogin()`. After login/logout the whole query cache is cleared, so data from one account never shows in another.
+- `features/…`: one folder per area (booking, owner, staff, customer, auth).
+- `components/ui.tsx`: buttons, fields, dialog, alerts, loading/empty/error states, so every screen handles those three states the same way.
+
+**Data fetching with TanStack Query:** `useQuery({ queryKey, queryFn })` gives you `isPending`, `isError`, `data` and caching. After a change (`useMutation`) we _invalidate_ related keys so lists refresh.
+
+**Forms:** React Hook Form + the **same Zod schemas the API uses** (`@slotwise/shared`). The browser shows mistakes instantly, and if the server still rejects something, `applyServerErrors` puts its message next to the right field.
+
+**Why the booking choice lives in the URL:** `/b/glow-salon?service=…&staff=…&date=…&time=…`. If the customer has to log in first, they come back to exactly the same choice.
+
+**Concepts:**
+
+- **Server state vs client state:** data owned by the server (bookings) vs data that only lives in the browser (is the menu open?).
+- **Cache invalidation:** telling the cache some data is stale so it refetches.
+- **Controlled form / schema validation:** form values checked against a schema before sending.
+- **Polling:** asking the server repeatedly until something changes (checkout waiting for the webhook).
+- **Accessibility (a11y):** labels, focus, keyboard use and screen-reader announcements so everyone can use the app.
