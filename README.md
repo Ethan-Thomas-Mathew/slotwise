@@ -169,3 +169,5 @@ Requirements: Node 22, pnpm 10, Docker.
 - [`docs/SECURITY.md`](docs/SECURITY.md): OWASP Top 10:2025 self-review
 - [`docs/DEPLOY.md`](docs/DEPLOY.md): how to deploy
 - [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md): load test results
+- [`docs/INTERVIEW.md`](docs/INTERVIEW.md): likely interview questions and where the answers are in the code
+- [`docs/EXERCISES.md`](docs/EXERCISES.md): hands-on changes to practise on this codebase
