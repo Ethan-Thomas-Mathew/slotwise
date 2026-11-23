@@ -66,3 +66,34 @@ Each entry: **Decision → Alternatives considered → Why this one → Trade-of
 - **Alternatives:** Always read the price from `services`.
 - **Why:** If the owner changes a price, existing bookings and refunds must still use the price the customer agreed to.
 - **Trade-off:** Duplicated data, but it's intentional history, not a cache.
+
+## D10. Database-backed sessions + Argon2id, not Better Auth
+
+- **Decision:** Opaque session tokens in an httpOnly cookie, stored as SHA-256 hashes in a `sessions` table. Passwords hashed with Argon2id via the maintained `@node-rs/argon2` library.
+- **Alternatives:** Better Auth (named in the plan), JWTs in cookies, Passport.
+- **Why:** Signup has to create a tenant, a user and a membership in **one** transaction under RLS, and staff invites have custom rules. Doing that inside a third-party auth framework's hooks is awkward and hard to explain. The session code here is ~100 lines that you can explain line by line. No cryptography is hand-written: random tokens come from the OS (`crypto.randomBytes`), hashing comes from vetted libraries. Server-side sessions (unlike JWTs) can be revoked instantly, e.g. "log out everywhere" after a password reset. (Better Auth also defaults to scrypt, not argon2.)
+- **Trade-off:** We own the session code: expiry, cleanup and future features like OAuth login would be ours to build.
+
+## D11. CSRF: per-session token + Origin check + SameSite=Lax
+
+- **Decision:** Every session has its own random CSRF token. The frontend gets it from `/auth/me` and sends it as `x-csrf-token` on every write, and the server compares in constant time. All writes also reject a foreign `Origin` header. Cookies are `SameSite=Lax`.
+- **Alternatives:** SameSite alone; double-submit cookie.
+- **Why:** Defence in depth. SameSite blocks most cross-site requests; the Origin check covers login/signup (before a session exists); the token covers anything else.
+- **Trade-off:** The frontend must remember to send the header (done once, in the API client).
+
+## D12. Rate limiting keyed by IP + email, stored in Redis, at preHandler
+
+- **Decision:** Login, signup, register, forgot/reset password and accept-invite allow 5 attempts per 15 minutes per (route, IP, email).
+- **Why:** Stops password guessing against one account without locking out a whole office that shares an IP. Redis means the limit holds across several API servers. It runs at `preHandler` so the parsed body (email) is available.
+- **Trade-off:** An attacker rotating IPs against one email isn't stopped by this alone; a production system would add a per-email limit and alerting.
+
+## D13. Auth endpoints don't reveal which emails exist
+
+- **Decision:** Login returns the same error for unknown email and wrong password (and burns the same hashing time). Forgot-password always returns 200.
+- **Why:** Otherwise attackers can build lists of registered users.
+- **Trade-off:** Slightly less helpful messages for real users.
+
+## D14. Invites: validate before consuming the token
+
+- **Decision:** Accept-invite checks the password first and only then marks the token as used (`UPDATE … WHERE used_at IS NULL RETURNING`, which is atomic).
+- **Why:** A typo in the password shouldn't destroy the invite, and two simultaneous accepts can't both succeed.

@@ -57,3 +57,37 @@ Plain-language notes, one section per phase: what was built, why, and the concep
 - **`tstzrange(start, end, '[)')`:** a time range including the start and excluding the end, so 10:00–10:30 and 10:30–11:00 don't overlap.
 - **`SECURITY DEFINER` function:** runs with the rights of the role that created it, not the caller. Used here as a narrow, controlled exception to RLS.
 - **Seed script:** fills an empty database with realistic demo data.
+
+---
+
+## Phase 2: Auth and roles
+
+**What was built:** owner signup (creates the business), customer registration, login/logout, "who am I" (`/auth/me`), switching between businesses, password reset by email, staff invites, role guards, CSRF protection and rate limiting.
+
+**How a login works, step by step:**
+
+1. `POST /auth/login` with email + password.
+2. The server finds the user and checks the password with Argon2 (`src/lib/passwords.ts`). Wrong email and wrong password get the **same** message.
+3. It creates a random session token (`src/modules/auth/sessions.ts`), stores **SHA-256(token)** in `sessions`, and sends the raw token in an `httpOnly` cookie called `sid`.
+4. On every later request, the `onRequest` hook in `src/plugins/auth.ts` hashes the cookie, finds the session, and attaches `req.auth` (user, active business, role).
+5. Route guards like `requireRole('OWNER')` run before the handler and return 401/403 if needed.
+
+**Why each protection exists:**
+
+- **httpOnly cookie:** JavaScript can't read it, so an XSS bug can't steal the session.
+- **Hashing the token in the DB:** a database leak doesn't hand out logins.
+- **CSRF token:** a malicious website can make your browser send a request to Slotwise _with your cookie_. It can't read your CSRF token, so its request is refused.
+- **Origin check:** a second CSRF defence that also covers login.
+- **Rate limit:** stops someone trying thousands of passwords.
+- **One-time, expiring tokens** for password reset (1 hour) and invites (7 days), stored hashed.
+- **Password reset logs you out everywhere** (deletes all sessions).
+
+**Concepts:**
+
+- **Authentication vs authorization:** _who are you_ (login) vs _what may you do_ (roles).
+- **Session vs JWT:** a session is a pointer to server-side state and can be revoked; a JWT carries its own data and is hard to revoke before it expires.
+- **Argon2id:** a password hashing algorithm designed to be slow and memory-hungry, so guessing is expensive.
+- **CSRF (Cross-Site Request Forgery):** tricking a logged-in browser into sending a request.
+- **Rate limiting:** capping how often something can be done.
+- **User enumeration:** finding out which emails have accounts from differing error messages.
+- **Constant-time comparison:** comparing secrets without leaking, through timing, how many characters matched.
