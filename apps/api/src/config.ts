@@ -29,6 +29,8 @@ const EnvSchema = z.object({
   RAZORPAY_WEBHOOK_SECRET: z.string().min(8),
 
   SENTRY_DSN: z.string().optional(),
+  /** Demo deployments only: allow the mock payment provider in production. */
+  ALLOW_MOCK_PAYMENTS: z.enum(['true', 'false']).default('false'),
 });
 
 export type Config = z.infer<typeof EnvSchema>;
@@ -48,8 +50,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   ) {
     throw new Error('PAYMENTS_PROVIDER=razorpay needs RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET');
   }
-  if (config.NODE_ENV === 'production' && config.PAYMENTS_PROVIDER === 'mock') {
-    throw new Error('The mock payment provider cannot be used in production');
+  if (
+    config.NODE_ENV === 'production' &&
+    config.PAYMENTS_PROVIDER === 'mock' &&
+    config.ALLOW_MOCK_PAYMENTS !== 'true'
+  ) {
+    throw new Error(
+      'The mock payment provider cannot be used in production (set ALLOW_MOCK_PAYMENTS=true for a demo site)',
+    );
   }
   return config;
 }

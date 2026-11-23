@@ -250,3 +250,28 @@ Customer clicks Pay
 - **Controlled form / schema validation:** form values checked against a schema before sending.
 - **Polling:** asking the server repeatedly until something changes (checkout waiting for the webhook).
 - **Accessibility (a11y):** labels, focus, keyboard use and screen-reader announcements so everyone can use the app.
+
+---
+
+## Phase 8: Hardening and shipping
+
+**What was built:** security headers and CORS, Sentry hooks, request-id logging, an OWASP Top 10:2025 review (`docs/SECURITY.md`), Playwright end-to-end tests with accessibility checks, Dockerfiles, a one-command Docker setup, CI jobs for E2E and image builds, Dependabot, a dependency audit, and the README/architecture/deploy docs.
+
+**Key ideas:**
+
+- **Defence in depth:** several independent protections, so one mistake doesn't become a breach (RLS + app filters; SameSite + CSRF token + Origin check).
+- **Security headers:** instructions to the browser, e.g. CSP ("only run scripts from these places") and `X-Content-Type-Options: nosniff`.
+- **CORS:** the browser rule that stops other websites from reading your API's responses. We allow only our own frontend.
+- **Structured logging + request ids:** every log line is JSON and carries the request's id, so one failing request can be traced through the logs (and Sentry).
+- **Health vs readiness:** `/health` = the process is alive; `/ready` = it can reach Postgres and Redis. Load balancers use these.
+- **E2E tests:** a real browser clicking through the app like a user. Slower, so only for the critical paths.
+- **Docker multi-stage builds:** compile in one stage, copy only the result and production dependencies into a small final image that runs as a non-root user.
+- **Supply-chain hygiene:** a lockfile, `pnpm audit` in CI (it found a vulnerable `nodemailer`, now upgraded), and Dependabot for updates.
+
+**How to explain the project in an interview (2 minutes):**
+
+1. _What:_ a booking platform many small businesses share. Each has its own booking page; customers book and pay online.
+2. _Hard part 1:_ tenant isolation, enforced in TypeScript types **and** by Postgres RLS, tested by trying to break it.
+3. _Hard part 2:_ no double booking. The database's exclusion constraint decides; a 20-request concurrency test proves it, and it caught a real deadlock I fixed with an advisory lock.
+4. _Hard part 3:_ payments. Webhooks are signed and idempotent, the price comes from the database, and late payments are re-confirmed or auto-refunded.
+5. _Engineering:_ 300+ tests across unit/integration/E2E, CI, Docker, an OWASP review, and a decision log.

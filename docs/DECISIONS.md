@@ -226,3 +226,19 @@ Each entry: **Decision → Alternatives considered → Why this one → Trade-of
 - **Decision:** Mineral paper background, deep slate ink, peacock teal for actions, and **marigold only for time-sensitive things** (the held slot, the countdown). Bricolage Grotesque for headings, Onest for text, both self-hosted (no third-party font requests). The booking timeline (an hour rail like a page of an appointment book) is the one distinctive element; everything else is quiet.
 - **Why:** Small businesses in India are the audience. A calm, readable UI with one clear signal for "this is held for you, act now" helps customers more than decoration.
 - **Accessibility floor:** labelled fields with errors linked by `aria-describedby`, radio groups for choices, native `<dialog>` for modals (focus handling and Escape built in), visible focus rings, `prefers-reduced-motion` respected, skip link, `aria-live` toasts.
+
+## D37. nginx serves the frontend and proxies `/api` (same origin)
+
+- **Decision:** In production the web container serves the built files and forwards `/api/*` to the API. The browser only ever talks to one origin.
+- **Alternatives:** Frontend and API on different domains with CORS and `SameSite=None` cookies.
+- **Why:** Same-origin means `SameSite=Lax` cookies just work, CORS isn't on the critical path, and CSP can be strict (`default-src 'self'`). CORS is still configured (locked to `WEB_ORIGIN`) for setups that split them.
+
+## D38. One image for API and worker; migrations as a release step
+
+- **Decision:** `apps/api/Dockerfile` builds a single image. The API runs `node dist/index.js`, the worker `node dist/worker.js`, migrations `node dist/migrate.js` (run before the new version starts). The image is pruned with `pnpm deploy --prod` and runs as the non-root `node` user.
+- **Why:** The API and worker always run the same version of the code, and there's one thing to build, scan and ship.
+
+## D39. E2E tests drive the real stack, including the worker
+
+- **Decision:** Playwright starts the API, the worker and Vite itself. The booking test pays with the mock provider, which sends a real signed webhook, and waits for the worker to process the refund.
+- **Why:** The most valuable test is the one that proves the pieces work together the way a customer uses them. axe checks for serious accessibility problems on the main pages in the same run.

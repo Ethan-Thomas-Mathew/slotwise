@@ -1,8 +1,10 @@
 import { loadConfig } from './config';
 import { buildApp } from './app';
 import { createDeps } from './deps';
+import { initSentry } from './lib/sentry';
 
 const config = loadConfig();
+initSentry(config, 'api');
 const { deps, close } = createDeps(config);
 const app = await buildApp(deps);
 

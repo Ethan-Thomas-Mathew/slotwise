@@ -19,6 +19,7 @@
     "db:seed": "pnpm --filter @slotwise/api db:seed"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^9.39.0",
     "@playwright/test": "^1.59.0",
     "@types/node": "^22.10.0",

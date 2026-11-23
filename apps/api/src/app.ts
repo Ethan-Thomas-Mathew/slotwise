@@ -1,5 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import cookie from '@fastify/cookie';
+import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import { sql } from 'kysely';
 import type { Redis } from 'ioredis';
@@ -62,6 +64,20 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     reply.header('x-request-id', req.id);
   });
 
+  // Security headers. The API only returns JSON, so the strictest CSP is fine.
+  await app.register(helmet, {
+    contentSecurityPolicy: { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] } },
+    crossOriginResourcePolicy: { policy: 'same-site' },
+    hsts: config.NODE_ENV === 'production' ? { maxAge: 31536000, includeSubDomains: true } : false,
+  });
+  // Only our own frontend may call the API from a browser (with cookies).
+  await app.register(cors, {
+    origin: [config.WEB_ORIGIN],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['content-type', 'x-csrf-token'],
+    maxAge: 600,
+  });
   await app.register(cookie);
   await app.register(rateLimit, {
     global: false,

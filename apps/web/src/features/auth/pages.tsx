@@ -79,19 +79,19 @@ export function LoginPage() {
         </Button>
       </form>
       <div className="mt-6 flex flex-col gap-2 text-sm">
-        <Link className="text-peacock underline-offset-2 hover:underline" to="/forgot-password">
+        <Link className="text-peacock underline underline-offset-2" to="/forgot-password">
           Forgot your password?
         </Link>
         <span className="text-muted">
           New here?{' '}
           <Link
-            className="text-peacock hover:underline"
+            className="text-peacock underline underline-offset-2"
             to={`/register${params.size ? `?${params}` : ''}`}
           >
             Create an account
           </Link>{' '}
           or{' '}
-          <Link className="text-peacock hover:underline" to="/signup">
+          <Link className="text-peacock underline underline-offset-2" to="/signup">
             set up your business
           </Link>
           .
@@ -169,7 +169,7 @@ export function SignupPage() {
       </form>
       <p className="mt-6 text-sm text-muted">
         Already have an account?{' '}
-        <Link className="text-peacock hover:underline" to="/login">
+        <Link className="text-peacock underline underline-offset-2" to="/login">
           Log in
         </Link>
       </p>
@@ -234,7 +234,7 @@ export function RegisterPage() {
       <p className="mt-6 text-sm text-muted">
         Have an account?{' '}
         <Link
-          className="text-peacock hover:underline"
+          className="text-peacock underline underline-offset-2"
           to={`/login${params.size ? `?${params}` : ''}`}
         >
           Log in
@@ -294,7 +294,7 @@ export function ResetPasswordPage() {
       {done ? (
         <div className="flex flex-col gap-4">
           <Alert tone="info">Password changed. You've been logged out on every device.</Alert>
-          <Link className="text-peacock hover:underline" to="/login">
+          <Link className="text-peacock underline underline-offset-2" to="/login">
             Log in with your new password
           </Link>
         </div>

@@ -47,7 +47,10 @@ export async function paymentRoutes(app: FastifyInstance, deps: AppDeps) {
   // after the customer pays. It builds a webhook exactly like Razorpay's, signs
   // it with the webhook secret and sends it to our real webhook route.
   // ---------------------------------------------------------------------------
-  if (deps.payments.name === 'mock' && deps.config.NODE_ENV !== 'production') {
+  if (
+    deps.payments.name === 'mock' &&
+    (deps.config.NODE_ENV !== 'production' || deps.config.ALLOW_MOCK_PAYMENTS === 'true')
+  ) {
     app.post(
       '/dev/mock-payments/:orderId/:outcome',
       { preHandler: requireRole('CUSTOMER') },

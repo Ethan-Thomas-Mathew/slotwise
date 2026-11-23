@@ -36,5 +36,52 @@ services:
       - '1025:1025' # SMTP
       - '8025:8025' # Web UI + API
 
+  # ---------------------------------------------------------------------------
+  # The whole app, built from source:  docker compose --profile full up --build
+  # Then open http://localhost:8080 (emails at http://localhost:8025).
+  # ---------------------------------------------------------------------------
+  migrate:
+    profiles: [full]
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    command: sh -c "node dist/migrate.js && node dist/seed.js"
+    environment: &api-env
+      NODE_ENV: development
+      DATABASE_URL: postgresql://slotwise_app:app_password@postgres:5432/slotwise
+      MIGRATION_DATABASE_URL: postgresql://slotwise_owner:owner_password@postgres:5432/slotwise
+      REDIS_URL: redis://redis:6379
+      WEB_ORIGIN: http://localhost:8080
+      SMTP_HOST: mailpit
+      SMTP_PORT: '1025'
+      PAYMENTS_PROVIDER: mock
+      RAZORPAY_WEBHOOK_SECRET: local-docker-webhook-secret
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  api:
+    profiles: [full]
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    environment: *api-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  worker:
+    profiles: [full]
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    command: ['node', 'dist/worker.js']
+    environment: *api-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  web:
+    profiles: [full]
+    build: { context: ., dockerfile: apps/web/Dockerfile }
+    environment:
+      API_URL: http://api:3000
+    ports:
+      - '8080:8080'
+    depends_on: [api]
+
 volumes:
   pgdata:
