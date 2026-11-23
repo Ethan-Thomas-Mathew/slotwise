@@ -94,7 +94,8 @@ export async function processNotification(
  * The safety net, run every minute by the maintenance queue:
  * - expires holds whose expiry job never ran,
  * - re-queues emails that are due but were never queued (outbox),
- * - re-queues refunds stuck in REFUND_PENDING.
+ * - re-queues refunds stuck in REFUND_PENDING,
+ * - deletes expired sessions and old one-time tokens.
  */
 export async function reconcile(
   db: Database,
@@ -116,9 +117,25 @@ export async function reconcile(
     tenant_id: string;
   }>`SELECT * FROM app_pending_refunds(50)`.execute(db);
   for (const p of refunds) await jobs.enqueueRefund(p.tenant_id, p.id);
+
+  // Housekeeping: expired sessions and spent one-time tokens are useless, and
+  // keeping them only grows tables that are read on every request.
+  const sessions = await db.deleteFrom('sessions').where('expires_at', '<', sql<Date>`now()`).executeTakeFirst();
+  const tokens = await db
+    .deleteFrom('auth_tokens')
+    .where((eb) =>
+      eb.or([
+        eb('expires_at', '<', sql<Date>`now() - interval '1 day'`),
+        eb('used_at', '<', sql<Date>`now() - interval '1 day'`),
+      ]),
+    )
+    .executeTakeFirst();
+
   return {
     expiredHolds: expired[0]?.n ?? 0,
     requeuedNotifications: due.length,
     requeuedRefunds: refunds.length,
+    deletedSessions: Number(sessions.numDeletedRows),
+    deletedTokens: Number(tokens.numDeletedRows),
   };
 }

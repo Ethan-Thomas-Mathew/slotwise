@@ -200,6 +200,27 @@ describe('reconcile (the every-minute safety net)', () => {
   });
 });
 
+describe('reconcile housekeeping', () => {
+  it('deletes expired sessions and spent tokens, but keeps live ones', async () => {
+    const tenant = await createTestTenant(t.db);
+    const live = await loginAs(t.app, tenant.customer.email, tenant.slug);
+    const expired = await loginAs(t.app, tenant.owner.email, tenant.slug);
+    const { hashToken } = await import('../../src/lib/tokens');
+    const expiredId = hashToken(expired.cookie!.replace('sid=', ''));
+    await t.db.updateTable('sessions').set({ expires_at: sql`now() - interval '1 minute'` }).where('id', '=', expiredId).execute();
+    await t.db
+      .insertInto('auth_tokens')
+      .values({ type: 'PASSWORD_RESET', token_hash: `old-${Date.now()}`, email: 'x@test.local', expires_at: sql`now() - interval '2 days'` as never })
+      .execute();
+
+    const result = await reconcile(t.db, t.jobs);
+    expect(result.deletedSessions).toBeGreaterThanOrEqual(1);
+    expect(result.deletedTokens).toBeGreaterThanOrEqual(1);
+    expect(await t.db.selectFrom('sessions').select('id').where('id', '=', expiredId).executeTakeFirst()).toBeUndefined();
+    expect((await live.get('/auth/me')).statusCode).toBe(200);
+  });
+});
+
 describe('email templates', () => {
   const data = {
     businessName: 'Glow <b>Salon</b>',
