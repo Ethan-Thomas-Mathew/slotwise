@@ -1,0 +1,5 @@
+# Keep LF line endings on every OS (Windows checkouts would otherwise get CRLF,
+# which breaks the Prettier check and shell scripts inside Docker).
+* text=auto eol=lf
+*.png binary
+*.woff2 binary

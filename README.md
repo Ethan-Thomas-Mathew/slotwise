@@ -8,9 +8,11 @@
 
 ## Demo
 
-- **Live:** _not deployed yet. See [`docs/DEPLOY.md`](docs/DEPLOY.md)_
+Slotwise runs locally; it isn't hosted publicly. Payments use a built-in test mode that sends real signed webhooks through the real payment code, so no Razorpay account is needed.
+
 - **Video:** _2–3 minute walkthrough to be recorded_
 - **Run it yourself in one command:** see [Run locally](#run-locally)
+- **Deploying (optional):** [`docs/DEPLOY.md`](docs/DEPLOY.md)
 
 Demo logins (password for all: `password123`):
 
@@ -109,7 +111,7 @@ On a 2-vCPU machine running the API, Postgres and Redis together: **~320 slot lo
 
 ## Run locally
 
-**Everything in Docker (one command):**
+**Everything in Docker (one command; on Windows, install and start Docker Desktop first):**
 
 ```bash
 docker compose --profile full up --build
@@ -148,11 +150,11 @@ Requirements: Node 22, pnpm 10, Docker.
 - **Emails are at-least-once:** a crash at the wrong moment can send a duplicate email; it never loses one.
 - **Fixed slot grid** (steps of the service length): tidy times, but small gaps can go unused.
 - **INR only, Razorpay only.** No tax/GST invoices.
-- Not yet deployed; the deployment guide is written but untested.
+- Built to run locally for demos. The deployment guide is written but has not been tried on a real host.
 
 ## What I'd build next
 
-1. Deploy the live demo and record the walkthrough video.
+1. Record the walkthrough video.
 2. Customer self-serve without an account (magic-link booking management).
 3. Owner calendar view (drag to reschedule), and CSV export of bookings and payments.
 4. WhatsApp reminders (Indian customers read WhatsApp more than email).
