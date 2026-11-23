@@ -49,6 +49,10 @@ const ROUTES: {
   { method: 'GET', path: '/bookings/mine', allowed: ['CUSTOMER'] },
   { method: 'POST', path: '/bookings/hold', body: {}, allowed: ['CUSTOMER'] },
   { method: 'GET', path: '/staff/schedule', allowed: ['OWNER', 'STAFF'] },
+  { method: 'POST', path: '/payments/order', body: {}, allowed: ['CUSTOMER'] },
+  { method: 'POST', path: '/bookings/:id/cancel', allowed: ['OWNER', 'STAFF', 'CUSTOMER'] },
+  { method: 'POST', path: '/bookings/:id/complete', allowed: ['OWNER', 'STAFF'] },
+  { method: 'POST', path: '/bookings/:id/no-show', allowed: ['OWNER', 'STAFF'] },
   { method: 'GET', path: '/bookings/:id', allowed: ['OWNER', 'STAFF', 'CUSTOMER'] },
 ];
 

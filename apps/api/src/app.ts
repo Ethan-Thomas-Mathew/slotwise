@@ -7,12 +7,14 @@ import { randomUUID } from 'node:crypto';
 import type { Config } from './config';
 import type { Database } from './db/database';
 import type { Jobs } from './jobs/types';
+import type { PaymentProvider } from './modules/payments/provider';
 import { AppError } from './lib/errors';
 import { registerAuth } from './plugins/auth';
 import { registerErrorHandler } from './plugins/error-handler';
 import { authRoutes } from './modules/auth/routes';
 import { auditRoutes } from './modules/audit/routes';
 import { bookingRoutes } from './modules/bookings/routes';
+import { paymentRoutes } from './modules/payments/routes';
 import { publicRoutes } from './modules/public/routes';
 import { serviceRoutes } from './modules/services/routes';
 import { staffRoutes } from './modules/staff/routes';
@@ -25,6 +27,7 @@ export interface AppDeps {
   /** Used for rate-limit counters. Tests may pass null to use in-memory counters. */
   redis: Redis | null;
   jobs: Jobs;
+  payments: PaymentProvider;
 }
 
 /**
@@ -96,6 +99,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await staffRoutes(app, deps);
   await auditRoutes(app, deps);
   await bookingRoutes(app, deps);
+  await paymentRoutes(app, deps);
 
   return app;
 }

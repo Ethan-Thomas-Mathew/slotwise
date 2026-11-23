@@ -149,3 +149,36 @@ Each entry: **Decision → Alternatives considered → Why this one → Trade-of
 
 - **Decision:** Customers may cancel their own upcoming booking at any time. They get a **full refund** if they cancel at least `cancellation_window_hours` before the start (the boundary counts as on time), otherwise no refund. They may reschedule only inside that same free window. Owners can always cancel or reschedule, and owner cancellations are always refunded. Staff can't cancel or reschedule.
 - **Why:** Matches how salons and clinics usually work, and keeps the rule in one pure, unit-tested function (`bookingPolicy`) that the API also uses to tell the UI whether to show the buttons.
+
+## D24. The webhook (not the browser redirect) confirms bookings
+
+- **Decision:** After paying, the browser only shows "Processing…" and polls the booking. The booking becomes CONFIRMED only when Razorpay's signed webhook says the payment was captured.
+- **Why:** The browser can be closed, lose network, or be faked by a user. The provider's server-to-server message, verified with HMAC, is the only trustworthy source.
+- **How the webhook is made safe:**
+  1. **Signature on the raw body:** the webhook route keeps the body as a raw string (its own Fastify scope), and Razorpay's SDK helper checks `HMAC-SHA256(rawBody, webhookSecret)`. A tampered body or wrong secret → 400 and nothing stored.
+  2. **Idempotency:** `webhook_events.event_id` is UNIQUE. Recording the event and applying it happen in **one** transaction. A duplicate → 200 and nothing happens; a crash midway → nothing committed, so Razorpay's retry processes it cleanly. Tested with 5 identical webhooks fired at once.
+  3. **State-level idempotency too:** a _different_ event for the same payment (e.g. `order.paid` after `payment.captured`) finds the payment already CAPTURED and does nothing.
+  4. **Amount check:** a captured amount that differs from our order rolls back and logs an error.
+
+## D25. Payment arriving after the hold expired: re-confirm if free, else refund
+
+- **Decision:** If the booking is EXPIRED when the money arrives, we try `EXPIRED → CONFIRMED` inside a **savepoint**. If the exclusion constraint says someone else now has the slot, we roll back just that step, mark the payment REFUND_PENDING, queue a refund and email the customer. If the appointment time already passed, we refund straight away.
+- **Alternatives:** Always refund (simpler, but loses a sale when the slot is still free); always confirm (impossible: could double-book).
+- **Why:** Best outcome for both the customer and the business, and the database still guarantees no double booking.
+
+## D26. One open order per booking; amount always from the database
+
+- **Decision:** A partial unique index allows only one CREATED/FAILED payment per booking. Clicking "Pay" again (or retrying after a failed attempt) reuses the same order. The amount sent to Razorpay is `bookings.price_paise`; the request body only contains `bookingId`.
+- **Why:** Prevents a customer from accidentally (or deliberately) paying twice, and prevents price tampering from the browser.
+- **Also:** no database transaction is held open while calling Razorpay's API (check → call → record, each step short).
+
+## D27. Refunds are a background job that is safe to repeat
+
+- **Decision:** Deciding to refund marks the payment `REFUND_PENDING` (in the same transaction as the cancellation) and queues a job. The job first asks Razorpay whether a refund already exists, and only refunds if not. Then it marks `REFUNDED`.
+- **Why:** If the API call fails, the job retries with backoff and the reconciler re-queues anything stuck. If we crashed after Razorpay refunded but before we saved it, the retry finds the existing refund instead of refunding twice.
+- **Trade-off:** The refund job holds a row lock while calling Razorpay (a second or two); acceptable for a rare operation.
+
+## D28. A mock provider that runs the real webhook code
+
+- **Decision:** With `PAYMENTS_PROVIDER=mock`, orders are fake and a dev-only route (`/dev/mock-payments/:orderId/capture`, disabled in production) builds a Razorpay-shaped webhook, signs it with the webhook secret and sends it to the **real** webhook endpoint.
+- **Why:** Anyone can run the full flow locally and in E2E tests without Razorpay keys, and the code path being tested is the production one.

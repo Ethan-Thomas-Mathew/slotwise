@@ -154,3 +154,42 @@ It's a **pure function**: it gets everything it needs as arguments and doesn't t
 - **State machine:** a fixed set of states and allowed moves between them.
 - **Idempotent:** doing it twice has the same effect as doing it once (e.g. the expiry job).
 - **Outbox pattern:** write "messages to send" into the database in the same transaction as the change; a separate process sends them.
+
+---
+
+## Phase 5: Payments
+
+**What was built:** creating a payment order, the Razorpay webhook (signature check, idempotency, confirming bookings), automatic refunds (cancellations and late payments), and a mock provider so everything works without Razorpay keys.
+
+**The payment flow:**
+
+```
+Customer clicks Pay
+  → POST /payments/order          amount read from OUR database, one open order per booking
+  → Razorpay Checkout (browser)   customer pays by UPI/card
+  → browser shows "Processing…"   does NOT confirm anything
+  → Razorpay → POST /webhooks/razorpay
+        1. check HMAC signature of the raw body   (fake? → 400)
+        2. find the tenant for this order          (narrow SECURITY DEFINER function)
+        3. one transaction:
+             insert event_id (UNIQUE)              (seen before? → stop)
+             payment → CAPTURED, booking → CONFIRMED
+             queue confirmation + 24h reminder emails
+```
+
+**Why each piece exists:**
+
+- **HMAC signature:** Razorpay and we share a secret. Razorpay sends `HMAC(secret, body)`. Only someone with the secret can produce it, so we know the message is genuine and unmodified.
+- **Raw body:** the signature is over the exact bytes. If we parsed and re-stringified the JSON, spacing could change and the check would fail. Only the webhook route keeps the raw string.
+- **Idempotency:** providers deliver webhooks **at least once**, so duplicates are normal. The unique `event_id` plus doing everything in one transaction means "processed exactly once".
+- **Savepoint:** a checkpoint inside a transaction. We try to re-confirm a late payment; if Postgres refuses (slot taken), we roll back to the checkpoint and refund instead, without throwing away the rest of the work.
+- **Refund job:** talking to an external API can fail. Marking `REFUND_PENDING` first and retrying in the background means a refund is never forgotten, and checking for an existing refund first means it's never done twice.
+
+**Concepts:**
+
+- **Webhook:** a server calling your server when something happens.
+- **HMAC:** a signature made from a shared secret and the message.
+- **At-least-once delivery:** you may get the same message more than once; your handler must be idempotent.
+- **Idempotency key:** a unique id that lets you detect repeats (here `event_id`).
+- **Source of truth:** the system whose answer wins when two disagree (Razorpay, not the browser).
+- **Savepoint:** a partial-rollback point inside a transaction.

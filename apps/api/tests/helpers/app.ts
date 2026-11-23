@@ -5,11 +5,13 @@ import type { Database } from '../../src/db/database';
 import { appDb } from './db';
 import { RecordingJobs } from './recording-jobs';
 import { TEST_PASSWORD } from './factory';
+import { MockPaymentProvider } from '../../src/modules/payments/provider';
 
 export interface TestApp {
   app: FastifyInstance;
   db: Database;
   jobs: RecordingJobs;
+  payments: MockPaymentProvider;
   deps: AppDeps;
   close(): Promise<void>;
 }
@@ -17,13 +19,16 @@ export interface TestApp {
 export async function createTestApp(overrides: Partial<AppDeps> = {}): Promise<TestApp> {
   const db = appDb();
   const jobs = new RecordingJobs();
-  const deps: AppDeps = { config: loadConfig(), db, redis: null, jobs, ...overrides } as AppDeps;
+  const config = loadConfig();
+  const payments = new MockPaymentProvider(config.RAZORPAY_WEBHOOK_SECRET);
+  const deps: AppDeps = { config, db, redis: null, jobs, payments, ...overrides } as AppDeps;
   const app = await buildApp(deps);
   await app.ready();
   return {
     app,
     db,
     jobs,
+    payments,
     deps,
     close: async () => {
       await app.close();

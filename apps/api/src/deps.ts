@@ -4,6 +4,7 @@ import type { Config } from './config';
 import { createDatabase } from './db/database';
 import { BullJobs } from './jobs/bull-jobs';
 import { createQueues } from './jobs/queues';
+import { createPaymentProvider } from './modules/payments/provider';
 
 /** Creates the real (production/dev) dependencies from config. */
 export function createDeps(config: Config) {
@@ -12,7 +13,8 @@ export function createDeps(config: Config) {
   const redis = new Redis(config.REDIS_URL, { maxRetriesPerRequest: null });
   const queues = createQueues(redis);
   const jobs = new BullJobs(queues);
-  const deps: AppDeps = { config, db, redis, jobs };
+  const payments = createPaymentProvider(config);
+  const deps: AppDeps = { config, db, redis, jobs, payments };
 
   async function close() {
     await Promise.all(Object.values(queues).map((q) => q.close()));
