@@ -1,0 +1,46 @@
+{
+  "name": "@slotwise/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migrate": "tsx --env-file-if-exists=.env src/db/migrate.ts",
+    "db:seed": "tsx --env-file-if-exists=.env scripts/seed.ts",
+    "worker": "tsx --env-file-if-exists=.env src/worker.ts",
+    "db:reset": "tsx --env-file-if-exists=.env scripts/reset-db.ts"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.1.5",
+    "@fastify/cors": "^11.4.3",
+    "@fastify/helmet": "^13.2.0",
+    "@fastify/rate-limit": "^10.3.0",
+    "@node-rs/argon2": "^2.2.2",
+    "@sentry/node": "^10.78.0",
+    "@slotwise/shared": "workspace:*",
+    "bullmq": "^5.81.6",
+    "fastify": "^5.12.8",
+    "ioredis": "^5.11.1",
+    "kysely": "^0.28.20",
+    "luxon": "^3.7.2",
+    "nodemailer": "^7.0.13",
+    "pg": "^8.23.1",
+    "pino": "^9.14.0",
+    "razorpay": "^2.9.8",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.7.6",
+    "@types/nodemailer": "^8.0.2",
+    "@types/pg": "^8.23.1",
+    "pino-pretty": "^13.2.0",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.0",
+    "vitest": "^4.0.0"
+  }
+}
