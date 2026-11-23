@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import type { MeResponse } from '@slotwise/shared';
 import { useLogout, useMe, useSwitchTenant } from '../lib/auth';
@@ -107,7 +107,9 @@ export function AppLayout() {
       </aside>
       <main id="main" className="mx-auto w-full max-w-5xl px-5 py-8 lg:px-10">
         {me.data.activeTenant ? (
-          <Outlet />
+          <Suspense fallback={<Loading />}>
+            <Outlet />
+          </Suspense>
         ) : (
           <EmptyState title="You're not part of a business yet">
             Open a business's booking link to book with them, or set up your own business from the

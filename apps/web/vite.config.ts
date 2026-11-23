@@ -15,6 +15,21 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Libraries change far less often than our code. Putting them in their
+        // own files means browsers keep them cached across our deploys.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (/[\\/](react|react-dom|scheduler|react-router)[\\/]/.test(id)) return 'react';
+          if (/[\\/](zod|@tanstack|react-hook-form|@hookform)[\\/]/.test(id)) return 'data';
+          if (/[\\/]luxon[\\/]/.test(id)) return 'luxon';
+          return undefined;
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     include: ['tests/**/*.test.{ts,tsx}'],

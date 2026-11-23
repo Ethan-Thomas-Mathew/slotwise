@@ -242,3 +242,16 @@ Each entry: **Decision → Alternatives considered → Why this one → Trade-of
 
 - **Decision:** Playwright starts the API, the worker and Vite itself. The booking test pays with the mock provider, which sends a real signed webhook, and waits for the worker to process the refund.
 - **Why:** The most valuable test is the one that proves the pieces work together the way a customer uses them. axe checks for serious accessibility problems on the main pages in the same run.
+
+## D40. Security headers repeated in each nginx `location` (found by rehearsal)
+
+- **What we found:** Rehearsing the Docker build by hand (real nginx, the built app, the production bundle), the app's pages came back **without** the Content-Security-Policy. nginx inherits `add_header` lines from the `server` block only into a `location` that has **no** `add_header` of its own, and `location /` sets `Cache-Control`.
+- **Decision:** The headers live in `apps/web/nginx/security-headers.conf`, included in every location that serves the app. The `/api/` location includes nothing, so API responses carry only the API's own (stricter) headers.
+- **Also:** missing files under `/assets/` now return 404 instead of `index.html`.
+- **Verified:** the full booking-and-payment flow runs in Chrome through nginx with the strict CSP and zero console errors.
+
+## D41. Code splitting: customers don't download the dashboards
+
+- **Decision:** Dashboard pages load with `React.lazy` when first opened. Libraries go into separate `react`, `data` and `luxon` files, and Sentry loads only if it's configured.
+- **Why:** The booking page is opened by customers, often on phones and mobile data. Our own code is now a ~15 KB (gzipped) file; the library files stay cached in the browser across our deploys because they rarely change.
+- **Trade-off:** A short loading state the first time an owner opens each dashboard page.

@@ -1,8 +1,7 @@
-import { StrictMode } from 'react';
+import { lazy, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter, RouterProvider } from 'react-router';
-import * as Sentry from '@sentry/react';
 import './index.css';
 import { queryClient } from './lib/query';
 import { ToastProvider } from './components/toast';
@@ -18,23 +17,47 @@ import {
 } from './features/auth/pages';
 import { BookingPage } from './features/booking/booking-page';
 import { CheckoutPage } from './features/booking/checkout-page';
-import { MyBookingsPage } from './features/customer/my-bookings';
-import { SchedulePage } from './features/staff/schedule';
-import { OverviewPage } from './features/owner/overview';
-import { OwnerBookingsPage } from './features/owner/bookings';
-import { ServicesPage } from './features/owner/services';
-import { TeamPage } from './features/owner/team';
-import { SettingsPage } from './features/owner/settings';
-import { ActivityPage } from './features/owner/activity';
-import { EmailsPage } from './features/owner/emails';
+
+/*
+ * Dashboard pages are loaded only when someone opens them ("code splitting"),
+ * so a customer on a phone opening a booking page doesn't download them.
+ */
+const MyBookingsPage = lazy(() =>
+  import('./features/customer/my-bookings').then((m) => ({ default: m.MyBookingsPage })),
+);
+const SchedulePage = lazy(() =>
+  import('./features/staff/schedule').then((m) => ({ default: m.SchedulePage })),
+);
+const OverviewPage = lazy(() =>
+  import('./features/owner/overview').then((m) => ({ default: m.OverviewPage })),
+);
+const OwnerBookingsPage = lazy(() =>
+  import('./features/owner/bookings').then((m) => ({ default: m.OwnerBookingsPage })),
+);
+const ServicesPage = lazy(() =>
+  import('./features/owner/services').then((m) => ({ default: m.ServicesPage })),
+);
+const TeamPage = lazy(() => import('./features/owner/team').then((m) => ({ default: m.TeamPage })));
+const SettingsPage = lazy(() =>
+  import('./features/owner/settings').then((m) => ({ default: m.SettingsPage })),
+);
+const ActivityPage = lazy(() =>
+  import('./features/owner/activity').then((m) => ({ default: m.ActivityPage })),
+);
+const EmailsPage = lazy(() =>
+  import('./features/owner/emails').then((m) => ({ default: m.EmailsPage })),
+);
 import { useMe } from './lib/auth';
 
+// Error tracking is loaded only if configured.
 if (import.meta.env.VITE_SENTRY_DSN) {
-  Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
-    environment: import.meta.env.MODE,
-    sendDefaultPii: false,
-  });
+  void import('@sentry/react').then((Sentry) =>
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN,
+      environment: import.meta.env.MODE,
+      sendDefaultPii: false,
+    }),
+  );
 }
 
 const owner = (el: React.ReactNode) => <RoleGate roles={['OWNER']}>{el}</RoleGate>;
