@@ -101,6 +101,12 @@ The integration tests create a fresh `slotwise_test` database and migrate it bef
 
 ---
 
+## Performance
+
+On a 2-vCPU machine running the API, Postgres and Redis together: **~320 slot lookups/s** (p95 96 ms) and **~120 bookings held/s** (p95 210 ms) at 20 concurrent connections. The per-staff lock costs only ~5–8%. Details and method: [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md).
+
+---
+
 ## Run locally
 
 **Everything in Docker (one command):**
@@ -151,7 +157,7 @@ Requirements: Node 22, pnpm 10, Docker.
 3. Owner calendar view (drag to reschedule), and CSV export of bookings and payments.
 4. WhatsApp reminders (Indian customers read WhatsApp more than email).
 5. Per-account rate limits and MFA for owners.
-6. Load test the hold endpoint and measure the advisory-lock cost.
+6. Cache slot lookups for a few seconds per staff member and day (reads are the hot path; see PERFORMANCE.md).
 
 ---
 
@@ -162,3 +168,4 @@ Requirements: Node 22, pnpm 10, Docker.
 - [`docs/LEARNING.md`](docs/LEARNING.md): a plain-language explanation of each phase
 - [`docs/SECURITY.md`](docs/SECURITY.md): OWASP Top 10:2025 self-review
 - [`docs/DEPLOY.md`](docs/DEPLOY.md): how to deploy
+- [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md): load test results
