@@ -52,10 +52,16 @@ jobs:
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm typecheck
-      - name: Unit + integration tests
-        run: pnpm test
+      - name: Unit + integration tests (with coverage thresholds)
+        run: pnpm test:coverage
         env:
           MAILPIT_URL: http://localhost:8025
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-coverage
+          path: apps/api/coverage
+          retention-days: 7
       - run: pnpm build
 
   e2e:

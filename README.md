@@ -95,6 +95,8 @@ More diagrams (request lifecycle, payment sequence, booking states) are in [`doc
 | Integration | Real HTTP (Fastify `inject`) against real Postgres and Redis: auth, roles, tenant isolation, bookings, concurrency, payments, webhooks, jobs, SMTP                                                                           | 209                       | `pnpm test`     |
 | End-to-end  | Real Chrome: owner signup → service + hours → customer books and pays → owner sees it → customer cancels → refund; staff invite and password reset by following the real email links; axe accessibility checks on main pages | 13                        | `pnpm test:e2e` |
 
+API code coverage: **~90% of lines, ~78% of branches**. CI fails if it drops below 85% / 72% (`pnpm test:coverage`).
+
 The integration tests create a fresh `slotwise_test` database and migrate it before every run. Each test makes its own tenants, so tests never depend on each other.
 
 ---
