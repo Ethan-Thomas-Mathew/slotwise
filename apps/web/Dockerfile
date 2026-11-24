@@ -17,7 +17,7 @@ COPY packages/shared packages/shared
 COPY apps/web apps/web
 RUN pnpm --filter @slotwise/web build
 
-FROM nginx:1.27-alpine
+FROM nginx:1.29-alpine
 ENV API_URL=http://api:3000
 COPY apps/web/nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY apps/web/nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
