@@ -10,7 +10,9 @@ import {
   slotsFor,
 } from '../helpers/booking';
 import { withTenant } from '../../src/db/tenant-tx';
+import { replaceRules } from '../../src/modules/availability/repo';
 import { expireHold } from '../../src/modules/bookings/service';
+import { setStaffServices } from '../../src/modules/staff/repo';
 
 let t: TestApp;
 let T: TestTenant;
@@ -124,6 +126,42 @@ describe('POST /bookings/hold', () => {
         .executeTakeFirstOrThrow(),
     );
     expect(old.status).toBe('EXPIRED');
+  });
+});
+
+describe('unpaid holds per customer', () => {
+  it('allows 3 at once; the 4th is refused', async () => {
+    const tenant = await createTestTenant(t.db);
+    const c = await loginAs(t.app, tenant.customer.email, tenant.slug);
+    const slots = await slotsFor(t.app, tenant, dateIn(6));
+    const codes = [];
+    for (const slot of slots.slice(0, 4)) codes.push((await hold(c, slot, tenant)).statusCode);
+    expect(codes).toEqual([201, 201, 201, 409]);
+  });
+
+  it('allows only 3 even when 6 holds with different staff arrive at the same moment', async () => {
+    // The owner also offers the service, so the requests don't all queue on one calendar.
+    const tenant = await createTestTenant(t.db);
+    await withTenant(t.db, tenant.tenantId, async (tx) => {
+      await setStaffServices(tx, tenant.owner.membershipId, [tenant.service.id]);
+      await replaceRules(
+        tx,
+        tenant.owner.membershipId,
+        [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, startMinute: 540, endMinute: 1020 })),
+      );
+    });
+    const c = await loginAs(t.app, tenant.customer.email, tenant.slug);
+    const slots = await slotsFor(t.app, tenant, dateIn(6));
+    const responses = await Promise.all(
+      slots.slice(0, 6).map((startAt, i) =>
+        c.post('/bookings/hold', {
+          serviceId: tenant.service.id,
+          staffId: i % 2 ? tenant.owner.membershipId : tenant.staff.membershipId,
+          startAt,
+        }),
+      ),
+    );
+    expect(responses.filter((r) => r.statusCode === 201)).toHaveLength(3);
   });
 });
 

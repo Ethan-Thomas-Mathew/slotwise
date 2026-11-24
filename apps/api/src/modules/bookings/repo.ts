@@ -114,6 +114,17 @@ export async function listBusyIntervals(
  * The constraint is still what guarantees correctness; the lock only stops
  * the deadlock. Different staff members never wait for each other.
  */
+/**
+ * Serialises one customer's hold requests, so the per-customer limit is counted
+ * correctly when several arrive at once for different staff (whose calendar locks
+ * wouldn't make them wait for each other). Always taken before a calendar lock.
+ */
+export async function lockCustomerHolds(tx: TenantTx, customerMembershipId: string) {
+  await sql`SELECT pg_advisory_xact_lock(hashtextextended(${'customer-holds:' + customerMembershipId}, 0))`.execute(
+    tx.db,
+  );
+}
+
 export async function lockStaffCalendar(tx: TenantTx, staffMembershipId: string) {
   await sql`SELECT pg_advisory_xact_lock(hashtextextended(${'staff-calendar:' + staffMembershipId}, 0))`.execute(
     tx.db,
