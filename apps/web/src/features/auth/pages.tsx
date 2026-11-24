@@ -246,7 +246,8 @@ export function RegisterPage() {
 
 export function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
-  const { register, handleSubmit, formState } = useForm({
+  const [formError, setFormError] = useState('');
+  const { register, handleSubmit, setError, formState } = useForm({
     resolver: zodResolver(ForgotPasswordRequest),
   });
   return (
@@ -260,10 +261,16 @@ export function ForgotPasswordPage() {
           noValidate
           className="flex flex-col gap-4"
           onSubmit={handleSubmit(async (values) => {
-            await post('/auth/forgot-password', values).catch(() => undefined);
-            setSent(true);
+            setFormError('');
+            try {
+              await post('/auth/forgot-password', values);
+              setSent(true);
+            } catch (err) {
+              setFormError(applyServerErrors(err, setError));
+            }
           })}
         >
+          {formError && <Alert>{formError}</Alert>}
           <Field
             label="Email"
             type="email"
