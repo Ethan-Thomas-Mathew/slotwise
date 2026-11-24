@@ -78,3 +78,56 @@ to send a request. All four are settings with defaults.
 (C8). The Mailpit image is pinned to a version, and a test rejects unpinned images
 (S3). A request id sent by the caller is kept only if it is short and plain, so it
 can't flood or forge log lines (S4, found during this phase).
+
+## Phase 3: Scope and dead code
+
+**Removed: Sentry and the deployment guide (D1).** Sentry is a hosted error-tracking
+service. The project's rule is "runs locally and offline", so code that talks to a
+cloud service doesn't belong, even when it's switched off by default: it is still code
+to read, packages to install and a setting to explain. Unhandled errors are still
+logged with a request id and stack trace, which is what Sentry would have shown.
+The deployment guide described hosting on cloud providers, for the same reason.
+
+**Removed: dead code (D7).** A tool called `knip` lists files, exports and
+dependencies that nothing uses. It found a few functions, constants and types, one
+unused package (`pino-pretty`) and two `@types/...` packages for libraries that now
+include their own types. Exports used only inside their own file became local, so
+the public surface of each module is what other modules actually need.
+
+**Errors no longer hidden (D5, D6).** Three places caught errors and carried on:
+
+- `runEffects` (queueing jobs after a database commit) logged to `console` when no
+  logger was passed. The logger is now required. Not rethrowing is still right here:
+  the change is committed and the reconciler retries within a minute.
+- Removing a scheduled email job swallowed every error. The library already returns
+  0, without an error, when the job is missing or running, so only real failures
+  (Redis down) were being hidden.
+- Password checking turned any error into "wrong password". Erased accounts now store
+  an explicit marker that never matches, and anything else must be a valid hash.
+
+The question to ask of any `catch`: do I know what this error means, and can I do
+something useful about it here? If not, let it travel up to the error handler.
+
+## Phase 4: Structure
+
+**`lib/` replaced by named modules (D3).** A folder called `lib` or `utils` says nothing
+about what is inside, so it collects unrelated code. The API's `lib/` held HTTP errors,
+validation, password hashing, tokens, the mailer, HTML escaping and metrics. They now
+live in `http/`, `credentials/`, `mail/`, `jobs/effects.ts` and `metrics.ts`. The web
+app's `lib/` became `api/` (the fetch client, query cache and session hooks) and
+`time/`. Test helpers moved to `tests/support/`. A small script moved the files and
+rewrote every import; nothing else changed in that commit, so it is easy to review.
+
+**Time (D4).** The audit said time rules read the clock directly. On closer reading,
+the rules themselves (cancellation policy, slot generation, reminder time) already take
+`now` as a parameter, and only the code around them reads the clock. The missing piece
+was tests at the edges of the reminder rule (exactly 24 hours before, one millisecond
+earlier), which were added. No clock library was introduced, because nothing needed one.
+
+**API docs checked against the routes (D2, option B).** Each route's access rule
+(public, signed in, or specific roles) is written twice: on the route and in the API
+docs list. The role guard now carries its roles, every route records the rule it
+enforces as it is registered, and a test compares the two. It found one difference
+straight away (`/auth/me`), which was fixed. The bigger alternative, one table per
+module that both registers the routes and produces the docs, would remove the
+duplication entirely, but meant rewriting all eleven route files; it is deferred.
