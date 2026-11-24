@@ -12,7 +12,6 @@ Slotwise runs locally; it isn't hosted publicly. Payments use a built-in test mo
 
 - **Video:** _2–3 minute walkthrough to be recorded_
 - **Run it yourself in one command:** see [Run locally](#run-locally)
-- **Deploying (optional):** [`docs/DEPLOY.md`](docs/DEPLOY.md)
 
 Demo logins (password for all: `password123`):
 
@@ -183,7 +182,6 @@ Everything below runs locally and is bound to `127.0.0.1`, so nothing is reachab
 - [`docs/DECISIONS.md`](docs/DECISIONS.md): every important choice, with alternatives and trade-offs
 - [`docs/LEARNING.md`](docs/LEARNING.md): a plain-language explanation of each phase
 - [`docs/SECURITY.md`](docs/SECURITY.md): OWASP Top 10:2025 self-review
-- [`docs/DEPLOY.md`](docs/DEPLOY.md): how to deploy
 - [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md): load test results
 - [`docs/INTERVIEW.md`](docs/INTERVIEW.md): likely interview questions and where the answers are in the code
 - [`docs/EXERCISES.md`](docs/EXERCISES.md): hands-on changes to practise on this codebase

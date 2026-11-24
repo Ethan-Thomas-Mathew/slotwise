@@ -73,12 +73,6 @@ You'll touch every layer:
 
 **Check:** An integration test where `processNotification` sends it.
 
-## 8. Deploy it ★★★
-
-**Goal:** Follow `docs/DEPLOY.md`. Get a public URL, set up the Razorpay test webhook, and book and pay with a test card.
-
-**Check:** The README's "Live" link works, and you've recorded the 2–3 minute walkthrough video.
-
 ---
 
 When you can do 1, 3 and 4 without looking at the original code, you're ready to talk about this project in an interview.
