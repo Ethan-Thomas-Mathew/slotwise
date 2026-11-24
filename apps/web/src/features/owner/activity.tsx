@@ -57,6 +57,7 @@ const ACTIONS: Record<string, string> = {
   'payment.amount_mismatch':
     'received a payment for the wrong amount (not applied; refund it from the payment provider)',
   'notification.retry': 'resent an email',
+  'customer.account_deleted': 'deleted their account',
 };
 
 export function ActivityPage() {
