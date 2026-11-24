@@ -4,7 +4,7 @@
 # Run the worker:   docker run slotwise-api node dist/worker.js
 # Run migrations:   docker run slotwise-api node dist/migrate.js
 
-FROM node:22-slim AS base
+FROM node:25-slim AS base
 ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH
 RUN corepack enable
 WORKDIR /repo
@@ -22,7 +22,7 @@ COPY apps/api apps/api
 RUN pnpm --filter @slotwise/api build \
  && pnpm --filter @slotwise/api deploy --legacy --prod /out
 
-FROM node:22-slim AS runtime
+FROM node:25-slim AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /out/node_modules ./node_modules
