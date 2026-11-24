@@ -37,6 +37,8 @@ export interface UsersTable {
   name: string;
   password_hash: string;
   created_at: GeneratedTimestamp;
+  /** Set when the person deleted their account (the row is anonymised, not removed). */
+  deleted_at: ColumnType<Date | null, Date | null | undefined, Date | null>;
 }
 
 export interface MembershipsTable {

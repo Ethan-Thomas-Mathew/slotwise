@@ -8,6 +8,8 @@ import {
   CreateOrderRequest,
   CreateOrderResponse,
   DashboardSummary,
+  DataExport,
+  DeleteAccountRequest,
   ErrorResponse,
   ForgotPasswordRequest,
   HoldRequest,
@@ -193,6 +195,27 @@ export const operations: Operation[] = [
     body: AcceptInviteRequest,
     response: MeResponse,
     strictLimit: true,
+  },
+
+  // --- Your data (privacy) -------------------------------------------------
+  {
+    method: 'get',
+    path: '/account/data',
+    tag: 'Account',
+    summary: 'Download everything Slotwise stores about me (JSON file)',
+    who: 'signed-in',
+    response: DataExport,
+  },
+  {
+    method: 'post',
+    path: '/account/delete',
+    tag: 'Account',
+    summary: 'Erase my account (customers only; password + "DELETE" required)',
+    description:
+      'Refused for owners, team members and anyone with upcoming bookings. Past bookings stay in the business records but no longer name the person.',
+    who: 'signed-in',
+    body: DeleteAccountRequest,
+    response: OkResponse,
   },
 
   // --- Public booking page ---------------------------------------------------
@@ -603,9 +626,17 @@ export function buildOpenApiDocument() {
         'every write also needs the x-csrf-token header from /auth/me. All errors share one shape.',
     },
     servers: [{ url: '/api', description: 'Through the web app (Vite or nginx proxy)' }],
-    tags: ['Ops', 'Auth', 'Public', 'Bookings', 'Payments', 'Services', 'Team', 'Business'].map(
-      (name) => ({ name }),
-    ),
+    tags: [
+      'Ops',
+      'Auth',
+      'Account',
+      'Public',
+      'Bookings',
+      'Payments',
+      'Services',
+      'Team',
+      'Business',
+    ].map((name) => ({ name })),
     components: {
       securitySchemes: {
         session: { type: 'apiKey', in: 'cookie', name: 'sid' },

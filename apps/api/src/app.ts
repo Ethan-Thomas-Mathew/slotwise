@@ -23,6 +23,7 @@ import { bookingRoutes } from './modules/bookings/routes';
 import { paymentRoutes } from './modules/payments/routes';
 import { notificationRoutes } from './modules/notifications/routes';
 import { dashboardRoutes } from './modules/dashboard/routes';
+import { privacyRoutes } from './modules/privacy/routes';
 import { publicRoutes } from './modules/public/routes';
 import { serviceRoutes } from './modules/services/routes';
 import { staffRoutes } from './modules/staff/routes';
@@ -149,6 +150,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await paymentRoutes(app, deps);
   await notificationRoutes(app, deps);
   await dashboardRoutes(app, deps);
+  await privacyRoutes(app, deps);
 
   // Interactive API docs at /docs (through the web app: /api/docs). On by default
   // locally, off by default in production so the API's map is not handed out.

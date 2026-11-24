@@ -17,7 +17,7 @@ const EXPECTED: Record<string, string[]> = {
     'booking_horizon_days',
     'created_at',
   ],
-  users: ['id', 'email', 'name', 'password_hash', 'created_at'],
+  users: ['id', 'email', 'name', 'password_hash', 'created_at', 'deleted_at'],
   memberships: ['id', 'tenant_id', 'user_id', 'role', 'created_at'],
   services: ['id', 'tenant_id', 'name', 'duration_minutes', 'price_paise', 'active', 'created_at'],
   staff_services: ['tenant_id', 'staff_membership_id', 'service_id'],

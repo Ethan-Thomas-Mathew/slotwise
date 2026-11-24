@@ -17,7 +17,9 @@
     "test:e2e": "playwright test",
     "db:migrate": "pnpm --filter @slotwise/api db:migrate",
     "db:seed": "pnpm --filter @slotwise/api db:seed",
-    "test:coverage": "pnpm -r --filter '!@slotwise/api' test && pnpm --filter @slotwise/api test:coverage"
+    "test:coverage": "pnpm -r --filter '!@slotwise/api' test && pnpm --filter @slotwise/api test:coverage",
+    "db:backup": "pnpm --filter @slotwise/api db:backup",
+    "db:restore-drill": "pnpm --filter @slotwise/api db:restore-drill"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

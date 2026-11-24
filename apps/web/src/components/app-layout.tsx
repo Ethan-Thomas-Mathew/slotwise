@@ -106,7 +106,7 @@ export function AppLayout() {
         </div>
       </aside>
       <main id="main" className="mx-auto w-full max-w-5xl px-5 py-8 lg:px-10">
-        {me.data.activeTenant ? (
+        {me.data.activeTenant || location.pathname === '/app/account' ? (
           <Suspense fallback={<Loading />}>
             <Outlet />
           </Suspense>
@@ -168,6 +168,9 @@ function UserBox({ me }: { me: MeResponse }) {
     <div className="mt-8 border-t border-line px-3 pt-4 text-sm">
       <p className="font-medium">{me.user.name}</p>
       <p className="truncate text-muted">{me.user.email}</p>
+      <NavLink to="/app/account" className="mt-2 block text-peacock hover:underline">
+        Your account
+      </NavLink>
       <button
         className="mt-2 text-peacock hover:underline"
         onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/') })}

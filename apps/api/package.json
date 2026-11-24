@@ -16,7 +16,9 @@
     "db:reset": "tsx --env-file-if-exists=.env scripts/reset-db.ts",
     "test:coverage": "vitest run --coverage",
     "bench": "tsx --env-file-if-exists=.env scripts/bench.ts",
-    "openapi": "tsx scripts/openapi.ts"
+    "openapi": "tsx scripts/openapi.ts",
+    "db:backup": "tsx --env-file-if-exists=.env scripts/ops/backup.ts",
+    "db:restore-drill": "tsx --env-file-if-exists=.env scripts/ops/restore-drill.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.5",

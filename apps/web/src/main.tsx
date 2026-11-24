@@ -22,6 +22,9 @@ import { CheckoutPage } from './features/booking/checkout-page';
  * Dashboard pages are loaded only when someone opens them ("code splitting"),
  * so a customer on a phone opening a booking page doesn't download them.
  */
+const AccountPage = lazy(() =>
+  import('./features/account/account-page').then((m) => ({ default: m.AccountPage })),
+);
 const MyBookingsPage = lazy(() =>
   import('./features/customer/my-bookings').then((m) => ({ default: m.MyBookingsPage })),
 );
@@ -90,6 +93,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <AppIndex /> },
       { path: 'bookings', element: <BookingsRoute /> },
+      { path: 'account', element: <AccountPage /> },
       {
         path: 'schedule',
         element: (
