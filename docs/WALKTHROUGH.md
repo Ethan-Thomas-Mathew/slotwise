@@ -131,3 +131,36 @@ enforces as it is registered, and a test compares the two. It found one differen
 straight away (`/auth/me`), which was fixed. The bigger alternative, one table per
 module that both registers the routes and produces the docs, would remove the
 duplication entirely, but meant rewriting all eleven route files; it is deferred.
+
+## Phase 5: Developer experience
+
+**One command to set up, one to run (X1, X2).** Setting up used to take five commands,
+including copying a settings file by hand, and `pnpm dev` started the API and web but
+not the background worker, so in development held slots never expired and emails
+never went out. Now:
+
+- `pnpm bootstrap` installs dependencies, starts Postgres, Redis and Mailpit and waits
+  until they're healthy, creates `apps/api/.env` if it's missing, applies migrations and
+  adds demo data. Every step is safe to repeat.
+- `pnpm dev` starts the API, the worker and the web app together.
+
+`bootstrap` is a small Node script with no dependencies rather than a shell script or a
+Makefile, because it has to run on Windows too, where `make` and `bash` usually aren't
+installed. pnpm can run every script whose name starts with `dev` in parallel, so the
+worker got a `dev:worker` script instead of a new tool to run processes side by side.
+
+The root `pnpm typecheck` also covers the end-to-end tests now; they weren't checked.
+
+## Phase 6: User interface
+
+**One typeface (U1, U2, U3).** Headings used a second font for character. A daily tool
+reads more calmly with one family, so everything uses Onest. One-off text sizes
+(`text-[15px]`) became a named step in the theme (`text-body`), so every size comes from
+the same scale. The page background also uses the theme colours before React loads.
+
+**No more suppressed lint rules (U5).** The booking page used an effect to put the only
+available staff member into the URL, with the dependency warning switched off. Values
+you can compute from other values shouldn't be stored and synchronised; they should just
+be computed while rendering. That removed the effect, the suppression, and a re-render.
+The signup form reads a field with `useWatch` instead of `watch`, which the React
+Compiler can optimise. Lint now reports nothing.
