@@ -18,22 +18,6 @@ export async function findMembership(tx: TenantTx, userId: string) {
     .executeTakeFirst();
 }
 
-export async function getMembershipById(tx: TenantTx, id: string) {
-  return tx.db
-    .selectFrom('memberships')
-    .innerJoin('users', 'users.id', 'memberships.user_id')
-    .select([
-      'memberships.id',
-      'memberships.role',
-      'memberships.user_id',
-      'users.name',
-      'users.email',
-    ])
-    .where('memberships.tenant_id', '=', tx.tenantId)
-    .where('memberships.id', '=', id)
-    .executeTakeFirst();
-}
-
 /**
  * All tenants this user belongs to. Works without a tenant context thanks to
  * the own_memberships_read RLS policy (requires app.user_id to be set).

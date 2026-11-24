@@ -1,6 +1,6 @@
 import type { TenantTx } from '../../db/tenant-tx';
 
-export interface RuleInput {
+interface RuleInput {
   weekday: number;
   startMinute: number;
   endMinute: number;

@@ -21,7 +21,7 @@ import { getTenant } from '../tenants/repo';
 import * as repo from './repo';
 import { transitionBooking } from './state-machine';
 
-export const MAX_ACTIVE_HOLDS_PER_CUSTOMER = 3;
+const MAX_ACTIVE_HOLDS_PER_CUSTOMER = 3;
 
 export interface Actor {
   userId: string;
@@ -37,7 +37,7 @@ interface Deps {
 // Policy: who may do what, and when
 // ---------------------------------------------------------------------------
 
-export interface BookingPolicy {
+interface BookingPolicy {
   canCancel: boolean;
   canReschedule: boolean;
   /** If cancelled now, is the payment refunded? */

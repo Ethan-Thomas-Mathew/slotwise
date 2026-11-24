@@ -4,7 +4,7 @@ import type { NotificationType } from '../../db/schema';
 import type { OutgoingEmail } from '../../jobs/types';
 import { escapeHtml } from '../../lib/html';
 
-export interface BookingEmailData {
+interface BookingEmailData {
   businessName: string;
   timezone: string;
   currency: string;

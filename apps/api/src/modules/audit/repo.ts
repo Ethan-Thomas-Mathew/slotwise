@@ -1,6 +1,6 @@
 import type { TenantTx } from '../../db/tenant-tx';
 
-export interface AuditEntry {
+interface AuditEntry {
   action: string; // e.g. "service.update"
   entity: string; // e.g. "service"
   entityId?: string | null;

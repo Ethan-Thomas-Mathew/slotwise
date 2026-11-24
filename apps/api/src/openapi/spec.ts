@@ -58,7 +58,7 @@ import { TenantSettings } from '../modules/tenants/routes';
 
 type Who = 'public' | 'signed-in' | ('OWNER' | 'STAFF' | 'CUSTOMER')[];
 
-export interface Operation {
+interface Operation {
   method: 'get' | 'post' | 'put' | 'patch' | 'delete';
   /** Fastify-style path, e.g. /bookings/:id */
   path: string;

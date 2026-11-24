@@ -160,7 +160,7 @@ function parseEvent(rawBody: string): RazorpayEvent {
 }
 
 /** `rejected`: stored and acknowledged, but deliberately not applied (see onPaymentCaptured). */
-export type WebhookOutcome = 'processed' | 'duplicate' | 'ignored' | 'rejected';
+type WebhookOutcome = 'processed' | 'duplicate' | 'ignored' | 'rejected';
 
 /**
  * Steps:

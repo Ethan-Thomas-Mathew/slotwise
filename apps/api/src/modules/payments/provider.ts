@@ -36,7 +36,7 @@ function verify(rawBody: string, signature: string, secret: string): boolean {
   }
 }
 
-export class RazorpayProvider implements PaymentProvider {
+class RazorpayProvider implements PaymentProvider {
   readonly name = 'razorpay' as const;
   private readonly client: Razorpay;
 

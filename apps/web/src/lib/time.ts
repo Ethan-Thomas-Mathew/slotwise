@@ -7,7 +7,6 @@ import { DateTime } from 'luxon';
 export const dt = (iso: string, tz: string) => DateTime.fromISO(iso, { zone: tz });
 
 export const fmtTime = (iso: string, tz: string) => dt(iso, tz).toFormat('h:mm a');
-export const fmtDay = (iso: string, tz: string) => dt(iso, tz).toFormat('ccc d LLL');
 export const fmtDayLong = (iso: string, tz: string) => dt(iso, tz).toFormat('cccc, d LLLL');
 export const fmtDateTime = (iso: string, tz: string) => dt(iso, tz).toFormat('ccc d LLL, h:mm a');
 

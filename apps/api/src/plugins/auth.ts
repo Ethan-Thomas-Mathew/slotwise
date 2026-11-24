@@ -62,7 +62,7 @@ export function requireRole(...roles: MembershipRole[]) {
   };
 }
 
-export interface TenantContext {
+interface TenantContext {
   tenantId: string;
   userId: string;
   membershipId: string;

@@ -17,7 +17,7 @@ import {
   type RefundJob,
 } from './queues';
 
-export interface WorkerDeps {
+interface WorkerDeps {
   db: Database;
   mailer: Mailer;
   payments: PaymentProvider;

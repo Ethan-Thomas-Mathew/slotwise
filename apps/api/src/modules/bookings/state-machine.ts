@@ -35,7 +35,3 @@ export function transitionBooking(from: BookingStatus, to: BookingStatus): Booki
   }
   return to;
 }
-
-/** Statuses that occupy the staff member's time (same list as the exclusion constraint). */
-export const ACTIVE_STATUSES: readonly BookingStatus[] = ['HELD', 'CONFIRMED'];
-export const TERMINAL_STATUSES: readonly BookingStatus[] = ['CANCELLED', 'COMPLETED', 'NO_SHOW'];

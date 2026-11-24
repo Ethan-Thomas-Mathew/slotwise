@@ -33,8 +33,6 @@ function bookingView(tx: TenantTx) {
     .where('b.tenant_id', '=', tx.tenantId);
 }
 
-export type BookingView = Awaited<ReturnType<typeof getBookingView>> & {};
-
 export async function getBookingView(tx: TenantTx, id: string) {
   return bookingView(tx).where('b.id', '=', id).executeTakeFirst();
 }

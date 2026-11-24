@@ -7,7 +7,7 @@ import { getTenant } from '../tenants/repo';
 import * as repo from './repo';
 import { renderBookingEmail } from './templates';
 
-export type NotificationOutcome = 'sent' | 'skipped' | 'not_due' | 'cancelled' | 'failed';
+type NotificationOutcome = 'sent' | 'skipped' | 'not_due' | 'cancelled' | 'failed';
 
 /**
  * Sends one notification row. Called by the BullMQ worker; safe to call any

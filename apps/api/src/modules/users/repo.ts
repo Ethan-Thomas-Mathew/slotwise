@@ -10,10 +10,6 @@ export async function findUserByEmail(tx: AnyTx, email: string) {
     .executeTakeFirst();
 }
 
-export async function findUserById(tx: AnyTx, id: string) {
-  return tx.db.selectFrom('users').selectAll().where('id', '=', id).executeTakeFirst();
-}
-
 export async function insertUser(
   tx: AnyTx,
   data: { email: string; name: string; passwordHash: string },

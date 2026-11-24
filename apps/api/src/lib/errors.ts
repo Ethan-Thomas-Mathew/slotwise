@@ -3,7 +3,7 @@
  * The global error handler turns it into the standard JSON shape:
  *   { "error": { "code": "...", "message": "...", "details": ... } }
  */
-export type ErrorCode =
+type ErrorCode =
   | 'VALIDATION_ERROR'
   | 'UNAUTHENTICATED'
   | 'FORBIDDEN'

@@ -5,13 +5,9 @@ import type { TestTenant } from './factory';
 import { dateIn, slotsFor } from './booking';
 import { mockWebhookBody } from '../../src/modules/payments/routes';
 
-export const WEBHOOK_SECRET = 'test_webhook_secret';
+const WEBHOOK_SECRET = 'test_webhook_secret';
 
-export async function sendWebhook(
-  app: FastifyInstance,
-  body: object,
-  eventId = `evt_${randomUUID()}`,
-) {
+async function sendWebhook(app: FastifyInstance, body: object, eventId = `evt_${randomUUID()}`) {
   const raw = JSON.stringify(body);
   return app.inject({
     method: 'POST',

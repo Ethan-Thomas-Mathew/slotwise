@@ -19,7 +19,7 @@ const NAV: Record<string, { to: string; label: string }[]> = {
   CUSTOMER: [{ to: '/app/bookings', label: 'My bookings' }],
 };
 
-export const homeFor = (role: string | undefined) =>
+const homeFor = (role: string | undefined) =>
   role === 'OWNER' ? '/app/overview' : role === 'STAFF' ? '/app/schedule' : '/app/bookings';
 
 /** The signed-in area: navigation for the current role, business switcher, logout. */

@@ -17,8 +17,8 @@ export type BookingStatus =
 export type PaymentStatus = 'CREATED' | 'CAPTURED' | 'FAILED' | 'REFUND_PENDING' | 'REFUNDED';
 export type NotificationType =
   'BOOKING_CONFIRMED' | 'BOOKING_REMINDER' | 'BOOKING_CANCELLED' | 'LATE_PAYMENT_REFUNDED';
-export type NotificationStatus = 'PENDING' | 'SENT' | 'FAILED' | 'CANCELLED';
-export type AuthTokenType = 'PASSWORD_RESET' | 'STAFF_INVITE';
+type NotificationStatus = 'PENDING' | 'SENT' | 'FAILED' | 'CANCELLED';
+type AuthTokenType = 'PASSWORD_RESET' | 'STAFF_INVITE';
 
 export interface TenantsTable {
   id: Generated<string>;
@@ -189,9 +189,5 @@ export interface DB {
 }
 
 export type Tenant = Selectable<TenantsTable>;
-export type User = Selectable<UsersTable>;
-export type Membership = Selectable<MembershipsTable>;
 export type Service = Selectable<ServicesTable>;
 export type Booking = Selectable<BookingsTable>;
-export type Payment = Selectable<PaymentsTable>;
-export type Notification = Selectable<NotificationsTable>;

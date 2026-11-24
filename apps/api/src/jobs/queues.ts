@@ -32,7 +32,7 @@ export interface RefundJob {
  * Retries with exponential backoff: 5s, 10s, 20s, 40s… up to 6 attempts.
  * Finished jobs are deleted; failed ones are kept for a week so they can be inspected.
  */
-export const DEFAULT_JOB_OPTIONS: JobsOptions = {
+const DEFAULT_JOB_OPTIONS: JobsOptions = {
   attempts: 6,
   backoff: { type: 'exponential', delay: 5_000 },
   removeOnComplete: true,
