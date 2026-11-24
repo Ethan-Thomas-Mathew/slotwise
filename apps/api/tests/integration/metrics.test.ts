@@ -38,6 +38,11 @@ describe('metrics server', () => {
     expect((await fetch(`${base}/metrics`, { method: 'POST' })).status).toBe(404);
   });
 
+  it('reports a busy port instead of crashing the process', async () => {
+    const port = (server.address() as AddressInfo).port;
+    await expect(startMetricsServer(port, '127.0.0.1')).rejects.toThrow(/EADDRINUSE/);
+  });
+
   it('is not reachable through the public API', async () => {
     const res = await t.app.inject({ method: 'GET', url: '/metrics' });
     expect(res.statusCode).toBe(404);

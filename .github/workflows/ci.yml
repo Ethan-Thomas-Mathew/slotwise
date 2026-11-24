@@ -155,11 +155,11 @@ jobs:
       - name: Prometheus config and alert rules are valid; alert unit tests pass
         run: |
           docker run --rm -v "$PWD/ops/prometheus:/etc/prometheus:ro" --entrypoint promtool \
-            prom/prometheus:v3.5.0 check config /etc/prometheus/prometheus.yml
+            prom/prometheus:v3.5.5 check config /etc/prometheus/prometheus.yml
           docker run --rm -v "$PWD/ops/prometheus:/p:ro" -w /p --entrypoint promtool \
-            prom/prometheus:v3.5.0 check rules alerts.yml
+            prom/prometheus:v3.5.5 check rules alerts.yml
           docker run --rm -v "$PWD/ops/prometheus:/p:ro" -w /p --entrypoint promtool \
-            prom/prometheus:v3.5.0 test rules alerts.test.yml
+            prom/prometheus:v3.5.5 test rules alerts.test.yml
       - name: Grafana dashboard is valid JSON
         run: python3 -m json.tool ops/grafana/dashboards/slotwise.json > /dev/null
       - name: docker-compose.yml is valid with every profile

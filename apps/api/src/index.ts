@@ -25,8 +25,17 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
 
 try {
   await app.listen({ port: config.PORT, host: '0.0.0.0' });
-  metricsServer = await startMetricsServer(config.METRICS_PORT, config.METRICS_HOST);
-  app.log.info(`Metrics on ${config.METRICS_HOST}:${config.METRICS_PORT}/metrics (internal only)`);
+  // Metrics are useful but not essential: if their port is taken, keep serving.
+  metricsServer = await startMetricsServer(config.METRICS_PORT, config.METRICS_HOST).catch(
+    (err: Error) => {
+      app.log.warn({ err: err.message }, 'Metrics server not started');
+      return undefined;
+    },
+  );
+  if (metricsServer)
+    app.log.info(
+      `Metrics on ${config.METRICS_HOST}:${config.METRICS_PORT}/metrics (internal only)`,
+    );
 } catch (err) {
   app.log.error(err);
   process.exit(1);

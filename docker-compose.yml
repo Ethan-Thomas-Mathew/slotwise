@@ -101,7 +101,7 @@ services:
   # ---------------------------------------------------------------------------
   prometheus:
     profiles: [observability]
-    image: prom/prometheus:v3.5.0
+    image: prom/prometheus:v3.5.5
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.retention.time=7d
@@ -115,7 +115,7 @@ services:
 
   grafana:
     profiles: [observability]
-    image: grafana/grafana:12.1.0
+    image: grafana/grafana:12.4.15
     # No default admin/admin password: a random one is generated on every start
     # and never printed. Nobody logs in; the dashboard is shown read-only.
     entrypoint:

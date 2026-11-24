@@ -31,7 +31,14 @@ const workers = startWorkers(
 // The safety-net job: every minute. upsert = safe to call on every start.
 await queues.maintenance.upsertJobScheduler('reconcile', { every: 60_000 }, { name: 'reconcile' });
 trackQueueDepth(Object.values(queues));
-const metricsServer = await startMetricsServer(config.WORKER_METRICS_PORT, config.METRICS_HOST);
+// Metrics are useful but not essential: if their port is taken, keep working.
+const metricsServer = await startMetricsServer(
+  config.WORKER_METRICS_PORT,
+  config.METRICS_HOST,
+).catch((err: Error) => {
+  log.warn({ err: err.message }, 'Metrics server not started');
+  return undefined;
+});
 log.info({ metrics: `${config.METRICS_HOST}:${config.WORKER_METRICS_PORT}` }, 'Worker started');
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
@@ -39,7 +46,7 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     log.info({ signal }, 'Worker shutting down');
     await Promise.all(workers.map((w) => w.close())); // finish in-flight jobs
     await Promise.all(Object.values(queues).map((q) => q.close()));
-    metricsServer.close();
+    metricsServer?.close();
     mailer.close();
     await db.destroy();
     connection.disconnect();

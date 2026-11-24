@@ -90,5 +90,8 @@ export function startMetricsServer(port: number, host: string): Promise<Server> 
       .then((body) => res.writeHead(200, { 'content-type': registry.contentType }).end(body))
       .catch(() => res.writeHead(500).end());
   });
-  return new Promise((resolve) => server.listen(port, host, () => resolve(server)));
+  return new Promise((resolve, reject) => {
+    server.once('error', reject); // e.g. the port is already in use
+    server.listen(port, host, () => resolve(server));
+  });
 }
