@@ -66,7 +66,7 @@ jobs:
           # The backup tests run pg_dump/pg_restore inside the Postgres service container,
           # so their version matches the server (the runner's own client is newer).
           PG_TOOLS_CONTAINER: ${{ job.services.postgres.id }}
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: api-coverage
@@ -110,7 +110,7 @@ jobs:
           MIGRATION_DATABASE_URL: postgresql://slotwise_owner:owner_password@localhost:5432/slotwise
       - name: End-to-end tests
         run: pnpm test:e2e
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: playwright-report
