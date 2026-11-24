@@ -5106,7 +5106,8 @@
                       "enum": [
                         "processed",
                         "duplicate",
-                        "ignored"
+                        "ignored",
+                        "rejected"
                       ]
                     }
                   },
@@ -5186,7 +5187,8 @@
                       "enum": [
                         "processed",
                         "duplicate",
-                        "ignored"
+                        "ignored",
+                        "rejected"
                       ]
                     }
                   },

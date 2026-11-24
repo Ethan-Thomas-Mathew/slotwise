@@ -277,6 +277,36 @@ describe('POST /webhooks/razorpay', () => {
     const res = await sendWebhook(mockWebhookBody('order_does_not_exist', 100, 'INR', 'capture'));
     expect(res.json().status).toBe('ignored');
   });
+
+  it('a capture for the wrong amount is acknowledged, not applied, and shown to the owner', async () => {
+    const { bookingId, orderId, amount } = await holdAndOrder();
+    const event = mockWebhookBody(orderId, amount - 100, 'INR', 'capture');
+    const eventId = `evt_${randomUUID()}`;
+
+    const res = await sendWebhook(event, { eventId });
+    // 200 so the provider stops retrying an event that can never succeed.
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ status: 'rejected' });
+    expect(await bookingStatus(T.tenantId, bookingId)).toBe('HELD');
+    expect((await paymentOf(T.tenantId, bookingId)).status).toBe('CREATED');
+
+    const paymentId = (await paymentOf(T.tenantId, bookingId)).id;
+    const audit = await withTenant(t.db, T.tenantId, (tx) =>
+      tx.db
+        .selectFrom('audit_logs')
+        .select(['action', 'after'])
+        .where('entity_id', '=', paymentId)
+        .execute(),
+    );
+    expect(audit).toEqual([
+      {
+        action: 'payment.amount_mismatch',
+        after: { orderId, expectedPaise: amount, capturedPaise: amount - 100 },
+      },
+    ]);
+    // A retry of the same event is a duplicate, not a second audit entry.
+    expect((await sendWebhook(event, { eventId })).json()).toEqual({ status: 'duplicate' });
+  });
 });
 
 describe('late payment after the hold expired', () => {

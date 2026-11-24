@@ -56,6 +56,14 @@ groups:
           summary: 'Queue {{ $labels.queue }} has had over 100 waiting jobs for 10 minutes.'
           runbook: docs/RUNBOOK.md#queue-backlog
 
+      - alert: PaymentAmountMismatch
+        # A customer paid, but not the amount of the order. Never applied automatically.
+        expr: increase(slotwise_payment_webhooks_total{outcome="rejected"}[1h]) > 0
+        labels: { severity: critical }
+        annotations:
+          summary: A payment was captured for the wrong amount and needs a manual refund.
+          runbook: docs/RUNBOOK.md#payment-amount-mismatch
+
       - alert: WebhookSignatureFailures
         # Someone is sending fake payment webhooks, or our webhook secret is wrong.
         expr: increase(slotwise_app_errors_total{code="BAD_SIGNATURE"}[10m]) > 3

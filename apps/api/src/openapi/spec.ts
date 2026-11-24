@@ -346,7 +346,7 @@ export const operations: Operation[] = [
       'Called by Razorpay, not by browsers. The HMAC signature in x-razorpay-signature is checked over the raw body; each event id is processed once.',
     who: 'public',
     body: z.object({ event: z.string(), payload: z.record(z.string(), z.unknown()) }),
-    response: z.object({ status: z.enum(['processed', 'duplicate', 'ignored']) }),
+    response: z.object({ status: z.enum(['processed', 'duplicate', 'ignored', 'rejected']) }),
   },
   {
     method: 'post',
@@ -356,7 +356,7 @@ export const operations: Operation[] = [
     description:
       'Exists only with the mock payment provider. It signs a fake webhook and sends it through the real webhook route.',
     who: ['CUSTOMER'],
-    response: z.object({ status: z.enum(['processed', 'duplicate', 'ignored']) }),
+    response: z.object({ status: z.enum(['processed', 'duplicate', 'ignored', 'rejected']) }),
   },
 
   // --- Catalog and team ------------------------------------------------------

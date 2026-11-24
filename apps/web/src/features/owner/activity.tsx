@@ -54,6 +54,8 @@ const ACTIONS: Record<string, string> = {
   'booking.complete': 'marked a booking completed',
   'booking.no_show': 'marked a no-show',
   'payment.auto_refund': 'automatic refund',
+  'payment.amount_mismatch':
+    'received a payment for the wrong amount (not applied; refund it from the payment provider)',
   'notification.retry': 'resent an email',
 };
 

@@ -131,7 +131,8 @@ interface RazorpayEvent {
   };
 }
 
-export type WebhookOutcome = 'processed' | 'duplicate' | 'ignored';
+/** `rejected`: stored and acknowledged, but deliberately not applied (see onPaymentCaptured). */
+export type WebhookOutcome = 'processed' | 'duplicate' | 'ignored' | 'rejected';
 
 /**
  * Steps:
@@ -203,10 +204,11 @@ export async function handleWebhook(
       .executeTakeFirst();
     if (!inserted) return 'duplicate' as const; // seen before: do nothing
 
+    let result: WebhookOutcome = 'processed';
     switch (event.event) {
       case 'payment.captured':
       case 'order.paid':
-        await onPaymentCaptured(tx, event, effects, deps);
+        result = await onPaymentCaptured(tx, event, effects, deps);
         break;
       case 'payment.failed':
         await onPaymentFailed(tx, event);
@@ -222,29 +224,48 @@ export async function handleWebhook(
       .set({ processed_at: sql`now()` })
       .where('id', '=', inserted.id)
       .execute();
-    return 'processed' as const;
+    return result;
   });
   await runEffects(effects, deps.log);
   return outcome;
 }
 
-async function onPaymentCaptured(tx: TenantTx, event: RazorpayEvent, effects: Effects, deps: Deps) {
+async function onPaymentCaptured(
+  tx: TenantTx,
+  event: RazorpayEvent,
+  effects: Effects,
+  deps: Deps,
+): Promise<'processed' | 'rejected'> {
   const entity = event.payload!.payment!.entity!;
   const payment = await repo.getPaymentByOrderForUpdate(tx, entity.order_id!);
-  if (!payment) return;
+  if (!payment) return 'processed';
   // Already handled (e.g. we got both order.paid and payment.captured).
   if (
     payment.status === 'CAPTURED' ||
     payment.status === 'REFUND_PENDING' ||
     payment.status === 'REFUNDED'
   )
-    return;
+    return 'processed';
   if (entity.amount !== undefined && entity.amount !== payment.amount_paise) {
+    // Money moved, but not the amount we asked for: never confirm on it. Failing
+    // the request would make the provider retry an event that can never succeed,
+    // so it is recorded and acknowledged; the owner sees it in the activity log
+    // and refunds it from the provider's dashboard. Metrics alert on `rejected`.
     deps.log?.error(
-      { orderId: entity.order_id },
+      { orderId: entity.order_id, expected: payment.amount_paise, captured: entity.amount },
       'Captured amount does not match the order amount',
     );
-    throw new Error('Captured amount mismatch'); // roll back; needs a human
+    await writeAudit(tx, {
+      action: 'payment.amount_mismatch',
+      entity: 'payment',
+      entityId: payment.id,
+      after: {
+        orderId: entity.order_id,
+        expectedPaise: payment.amount_paise,
+        capturedPaise: entity.amount,
+      },
+    });
+    return 'rejected';
   }
 
   await repo.updatePayment(tx, payment.id, ['CREATED', 'FAILED'], {
@@ -253,7 +274,7 @@ async function onPaymentCaptured(tx: TenantTx, event: RazorpayEvent, effects: Ef
   });
 
   const booking = await bookings.getBookingForUpdate(tx, payment.booking_id);
-  if (!booking) return;
+  if (!booking) return 'processed';
   const tenantId = tx.tenantId;
 
   const confirm = async (note: string) => {
@@ -300,7 +321,7 @@ async function onPaymentCaptured(tx: TenantTx, event: RazorpayEvent, effects: Ef
     // The row is still HELD, so the slot was never released, even if the
     // 10 minutes just ran out and the expiry job hasn't run yet.
     await confirm('payment');
-    return;
+    return 'processed';
   }
 
   if (booking.status === 'EXPIRED') {
@@ -308,7 +329,7 @@ async function onPaymentCaptured(tx: TenantTx, event: RazorpayEvent, effects: Ef
     // otherwise refund. (See DECISIONS.md D25.)
     if (booking.start_at.getTime() <= Date.now()) {
       await refund('Paid after the appointment time had passed');
-      return;
+      return 'processed';
     }
     await bookings.lockStaffCalendar(tx, booking.staff_membership_id);
     // A SAVEPOINT lets us try the UPDATE and, if the exclusion constraint
@@ -324,7 +345,7 @@ async function onPaymentCaptured(tx: TenantTx, event: RazorpayEvent, effects: Ef
       effects.length = effectsBefore; // drop anything the failed confirm queued
       await refund('Paid after the hold expired and someone else booked the slot');
     }
-    return;
+    return 'processed';
   }
 
   // CANCELLED (customer abandoned the hold) or already CONFIRMED (paid twice).
@@ -333,6 +354,7 @@ async function onPaymentCaptured(tx: TenantTx, event: RazorpayEvent, effects: Ef
       ? 'Booking was cancelled before the payment completed'
       : 'Duplicate payment for an already confirmed booking',
   );
+  return 'processed';
 }
 
 async function onPaymentFailed(tx: TenantTx, event: RazorpayEvent) {

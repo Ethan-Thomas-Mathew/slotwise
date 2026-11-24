@@ -36,7 +36,7 @@ export const appErrors = new client.Counter({
 export const webhooks = new client.Counter({
   name: 'slotwise_payment_webhooks_total',
   help: 'Payment webhooks received, by outcome',
-  labelNames: ['outcome'] as const, // processed | duplicate | ignored | bad_signature
+  labelNames: ['outcome'] as const, // processed | duplicate | ignored | rejected
   registers: [registry],
 });
 

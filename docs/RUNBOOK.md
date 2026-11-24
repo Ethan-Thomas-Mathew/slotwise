@@ -90,6 +90,19 @@ work waits in Redis (and the database outbox) and runs when the worker is back.
 3. If it's shrinking, it will catch up. If it's growing, start a second worker:
    `docker compose --profile full up -d --scale worker=2` (jobs are safe to run in parallel).
 
+### Payment amount mismatch
+
+`PaymentAmountMismatch`: the provider says a customer paid, but not the amount of
+their order. Slotwise never confirms a booking on such a payment; it records the event,
+acknowledges it (so the provider stops retrying) and writes an entry in the owner's
+**Activity** page with the expected and captured amounts.
+
+1. Find the entry on the Activity page ("received a payment for the wrong amount").
+2. Refund that payment in full from the payment provider's dashboard.
+3. Tell the customer to book again. Their hold expires on its own.
+4. If it happens more than once, compare the order amounts with the service prices:
+   a bug that changes the amount after the order is created would show up here.
+
 ### Webhook signature failures
 
 `WebhookSignatureFailures`: payment webhooks arrive with invalid signatures.
