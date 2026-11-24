@@ -1,6 +1,6 @@
 # Audit
 
-Date: 24 November 2026. Commit audited: `66137f5` (tag `v1.0.0`).
+Date: 24 November 2026. Commit audited: `a376da6` (tag `v1.0.0`).
 
 This is a read-only review against the upgrade brief. No code was changed to
 produce it.
@@ -187,33 +187,33 @@ every commit leaves the app runnable and the tests green. After each phase,
 
 | Finding    | Status    | Commit or reason                                                                                                                                                 |
 | ---------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C1         | Fixed     | `a8513b9` (with S2)                                                                                                                                              |
-| C2         | Fixed     | `28ae61e`                                                                                                                                                        |
-| C3         | Fixed     | `8db37dc`                                                                                                                                                        |
-| C4         | Fixed     | `137112f`                                                                                                                                                        |
-| C5         | Fixed     | `b53af8d`                                                                                                                                                        |
-| C6         | Fixed     | `194c97e`                                                                                                                                                        |
-| C7         | Fixed     | `10b72db`                                                                                                                                                        |
-| C8         | Fixed     | `7fa2d0c`                                                                                                                                                        |
-| S1         | Fixed     | `fff46b5`                                                                                                                                                        |
-| S2         | Fixed     | `a8513b9`                                                                                                                                                        |
-| S3         | Fixed     | `b4f0ab5`                                                                                                                                                        |
-| S4         | Fixed     | `87a8088`                                                                                                                                                        |
-| D1         | Fixed     | `99a4004`, `b42f909`                                                                                                                                             |
-| D2         | Fixed (B) | `a7e033b`. Option A (one route table) deferred: the tests cover a missing route and a wrong access rule; rewriting 11 route modules isn't worth it at this size. |
-| D3         | Fixed     | `43f0349`                                                                                                                                                        |
-| D4         | Fixed     | `8efaf1d`. On re-reading, the time rules already took `now`; the missing piece was boundary tests.                                                               |
-| D5, D6     | Fixed     | `ac4cc05` (plus `2e56d6f` for password checks)                                                                                                                   |
-| D7         | Fixed     | `186f592`                                                                                                                                                        |
-| D8         | Fixed     | `688afe7`                                                                                                                                                        |
-| P1         | Partly    | `695b592`. The benchmark records its hardware, and the README states the VM it ran on. Laptop numbers need a run on the laptop (`pnpm bench`).                   |
-| P2         | Fixed     | `695b592`                                                                                                                                                        |
-| X1, X2     | Fixed     | `ec932ff`                                                                                                                                                        |
-| X3         | Fixed     | `baefb6f`, `d8f9b60`, `c348092`                                                                                                                                  |
-| X4         | Fixed     | `ec932ff` (documented in CONTRIBUTING)                                                                                                                           |
-| U1, U2, U3 | Fixed     | `42aa81e`                                                                                                                                                        |
-| U4         | Fixed     | `d8f9b60`, `dcf49ba`                                                                                                                                             |
-| U5         | Fixed     | `03e6a50`                                                                                                                                                        |
-| A1, A2, A3 | Fixed     | `dcf49ba`, `c348092`                                                                                                                                             |
-| A4         | Fixed     | `753c0f2`                                                                                                                                                        |
+| C1         | Fixed     | `875d724` (with S2)                                                                                                                                              |
+| C2         | Fixed     | `0dcd759`                                                                                                                                                        |
+| C3         | Fixed     | `0aac28b`                                                                                                                                                        |
+| C4         | Fixed     | `c36e51f`                                                                                                                                                        |
+| C5         | Fixed     | `7797614`                                                                                                                                                        |
+| C6         | Fixed     | `fbcf7d9`                                                                                                                                                        |
+| C7         | Fixed     | `071ebbd`                                                                                                                                                        |
+| C8         | Fixed     | `43e2325`                                                                                                                                                        |
+| S1         | Fixed     | `68e93b4`                                                                                                                                                        |
+| S2         | Fixed     | `875d724`                                                                                                                                                        |
+| S3         | Fixed     | `77bd942`                                                                                                                                                        |
+| S4         | Fixed     | `cdcf8c5`                                                                                                                                                        |
+| D1         | Fixed     | `ee46d6a`, `480d116`                                                                                                                                             |
+| D2         | Fixed (B) | `a6f884a`. Option A (one route table) deferred: the tests cover a missing route and a wrong access rule; rewriting 11 route modules isn't worth it at this size. |
+| D3         | Fixed     | `56fa433`                                                                                                                                                        |
+| D4         | Fixed     | `6a05898`. On re-reading, the time rules already took `now`; the missing piece was boundary tests.                                                               |
+| D5, D6     | Fixed     | `d2d4d7c` (plus `a19283e` for password checks)                                                                                                                   |
+| D7         | Fixed     | `8f8923c`                                                                                                                                                        |
+| D8         | Fixed     | `07dbb0e`                                                                                                                                                        |
+| P1         | Partly    | `d4e2cb9`. The benchmark records its hardware, and the README states the VM it ran on. Laptop numbers need a run on the laptop (`pnpm bench`).                   |
+| P2         | Fixed     | `d4e2cb9`                                                                                                                                                        |
+| X1, X2     | Fixed     | `d8a88da`                                                                                                                                                        |
+| X3         | Fixed     | `ce8bb08`, `be38748`, `d0c2b56`                                                                                                                                  |
+| X4         | Fixed     | `d8a88da` (documented in CONTRIBUTING)                                                                                                                           |
+| U1, U2, U3 | Fixed     | `e32c593`                                                                                                                                                        |
+| U4         | Fixed     | `be38748`, `e725ff6`                                                                                                                                             |
+| U5         | Fixed     | `1502801`                                                                                                                                                        |
+| A1, A2, A3 | Fixed     | `e725ff6`, `d0c2b56`                                                                                                                                             |
+| A4         | Fixed     | `57140f2`                                                                                                                                                        |
 | Phase 1    | Open      | Re-running the Docker setup with the monitoring profile on the Windows laptop needs the laptop.                                                                  |
