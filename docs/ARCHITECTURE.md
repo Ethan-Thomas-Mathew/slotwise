@@ -105,7 +105,9 @@ apps/api/src/
   plugins/          auth (sessions, CSRF, role guards), error handler
   modules/<area>/   repo.ts (data access) · service.ts (rules) · routes.ts (HTTP)
   jobs/             queue definitions, BullMQ implementation, workers
-  lib/              errors, validation, tokens, passwords, mailer, sentry
+  lib/              errors, validation, tokens, passwords, mailer, sentry, metrics
+  openapi/          the API description (OpenAPI 3.1) built from the route schemas
+apps/api/scripts/ops/  backup and restore drill
 apps/api/tests/
   unit/             pure logic: slot generator, state machine, cancellation policy
   integration/      HTTP + real Postgres + real Redis
@@ -114,6 +116,9 @@ apps/web/src/
   components/       UI kit, layouts
   features/         auth, booking, owner, staff, customer
 e2e/                Playwright: critical paths + accessibility
+ops/prometheus/     scrape config, alert rules and their unit tests
+ops/grafana/        provisioned datasource and dashboard
+docs/openapi.json   generated API description (kept in git so API changes show in review)
 ```
 
 ## Where each "hard problem" lives

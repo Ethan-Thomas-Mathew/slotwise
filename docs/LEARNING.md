@@ -274,4 +274,29 @@ Customer clicks Pay
 2. _Hard part 1:_ tenant isolation, enforced in TypeScript types **and** by Postgres RLS, tested by trying to break it.
 3. _Hard part 2:_ no double booking. The database's exclusion constraint decides; a 20-request concurrency test proves it, and it caught a real deadlock I fixed with an advisory lock.
 4. _Hard part 3:_ payments. Webhooks are signed and idempotent, the price comes from the database, and late payments are re-confirmed or auto-refunded.
-5. _Engineering:_ 300+ tests across unit/integration/E2E, CI, Docker, an OWASP review, and a decision log.
+5. _Engineering:_ 350 tests across unit/integration/E2E, CI, Docker, an OWASP review, and a decision log.
+6. _Running it:_ metrics and tested alerts with a runbook, generated API docs, backups that are proven by restoring them, and privacy rights (download and erase).
+
+## Phase 9: Running it like a real service
+
+**What was built:** Prometheus metrics and Grafana dashboards, alert rules with unit tests, generated API documentation, backups with a restore drill, a test that every migration can be undone, "download my data" and "delete my account", a runbook, a pre-commit hook, a pull request template, a changelog and container vulnerability scanning.
+
+**Key ideas:**
+
+- **Metrics vs logs:** logs tell you what happened to _one_ request; metrics are numbers over time (requests per second, error rate, slowest 5%) that show the health of _all_ of them. Prometheus collects the numbers every 15 seconds; Grafana draws them.
+- **Labels and cardinality:** each different label value makes a new time series in memory. Label by route template (`/bookings/:id`), never by the real URL, or one person requesting random URLs could fill the memory.
+- **p95 latency:** "95% of requests were faster than this". Averages hide the slow requests that users notice.
+- **Alerts need a runbook:** an alert that wakes someone up must say what to do. Each rule links to a section of `docs/RUNBOOK.md`. The rules have their own tests, because a typo would mean an alert that never fires.
+- **OpenAPI:** a standard, machine-readable description of an API. Generating it from the same schemas that validate requests means the docs can't fall out of date unnoticed.
+- **Backups:** a backup you have never restored is only a hope. The drill restores into a scratch database and compares it with the live one.
+- **Reversible migrations:** `down()` undoes `up()`. Testing it now means you can trust it during an incident.
+- **Privacy law (India's DPDP Act, 2023):** people can ask for their data and ask for it to be erased. Businesses may keep what they legally need (bookings, payments), so we _anonymise_ the person instead of deleting the records.
+- **Supply chain:** pin third-party code exactly (commit SHA, checksum), give CI jobs only the permissions they need, and scan images for known vulnerabilities.
+- **Team workflow:** small branches, pull requests with a checklist, CI as the gate, a changelog, and version tags (Semantic Versioning: MAJOR.MINOR.PATCH).
+
+**Try it:**
+
+1. Start everything with monitoring (`docker compose --profile full --profile observability up -d --build`), book a few slots, and watch the Grafana dashboard move.
+2. Stop the worker (`docker compose stop worker`) and watch `WorkerDown` go from "pending" to "firing" at http://localhost:9090/alerts. Then follow the runbook to fix it.
+3. `pnpm db:backup` then `pnpm db:restore-drill`.
+4. Open http://localhost:8080/api/docs and find the route that holds a slot. Which roles can call it?

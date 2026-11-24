@@ -46,6 +46,8 @@ RAZORPAY_WEBHOOK_SECRET=...
 SMTP_HOST=... SMTP_PORT=587 SMTP_USER=... SMTP_PASS=...
 EMAIL_FROM="Slotwise <bookings@your-domain>"
 SENTRY_DSN=...                        # optional
+# METRICS_HOST=0.0.0.0                # only if a private Prometheus must scrape :9464; never expose it publicly
+# API_DOCS=true                       # interactive API docs are OFF in production unless you set this
 ```
 
 Web container: `API_URL=http://<internal address of the api service>:3000`.

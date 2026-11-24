@@ -151,3 +151,20 @@ Interviewers mostly care whether you **understand and own** the code. Prove it b
 **"What would you do differently / next?"** Pick 2–3 from README → "What I'd build next", and be honest about the limitations listed there.
 
 **"What was the hardest bug?"** The deadlock (above). Know it cold.
+
+## Running it in production
+
+**"How would you know if it broke at 2 a.m.?"**
+Prometheus scrapes metrics from the API and the worker; alert rules fire on the API or worker being down, more than 5% server errors, slow requests, failing jobs, a growing queue and bursts of fake webhooks. Each alert links to a runbook section. The rules have unit tests (`ops/prometheus/alerts.test.yml`). → `apps/api/src/lib/metrics.ts`, `ops/prometheus/`, `docs/RUNBOOK.md`
+
+**"Why not label metrics by URL?"**
+Cardinality: every distinct label value is a new time series held in memory, and URLs contain ids, so a scanner requesting random URLs could exhaust memory. We label by route template and put unknown URLs under `unmatched`; a test checks ids never appear in the metrics.
+
+**"How do you keep API docs accurate?"**
+They're generated from the Zod schemas that validate requests. A test fails if a route is missing from the docs or the committed `docs/openapi.json` is stale. → `apps/api/src/openapi/spec.ts`, `tests/integration/openapi.test.ts`
+
+**"How do you know your backups work?"**
+`pnpm db:restore-drill` restores the newest backup into a scratch database and compares tables, migrations and RLS policies with the live one; a test runs backup and restore for real, and also checks a corrupted file is caught by its checksum. → `apps/api/scripts/ops/`
+
+**"A user asks you to delete their data. What happens?"**
+Customers can do it themselves. We anonymise rather than delete, because the business must keep booking and payment records: name, email and password are replaced, sessions and tokens deleted, their email is scrubbed from the audit log, all in one transaction. It's refused for owners, staff and anyone with upcoming bookings (refunds first). → `apps/api/src/modules/privacy/service.ts`, DECISIONS D49

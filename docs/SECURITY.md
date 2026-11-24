@@ -103,6 +103,7 @@ A self-review of Slotwise against the [OWASP Top 10:2025](https://owasp.org/Top1
 - Rejected webhook signatures are logged as warnings. Unexpected errors are logged and sent to **Sentry** (API, worker and browser) when `SENTRY_DSN` is set.
 - An **audit log** records who changed what (before/after) for every owner action, cancellation and payment decision, viewable by the owner.
 - Failed customer emails become visible to the owner after all retries.
+- **Alerting:** Prometheus alert rules (unit-tested) fire on API/worker down, error rate, latency, failing jobs, queue backlog and bursts of invalid webhook signatures; each links to a runbook section (`docs/RUNBOOK.md`).
 
 ## A10 Mishandling of Exceptional Conditions
 
@@ -124,3 +125,9 @@ A self-review of Slotwise against the [OWASP Top 10:2025](https://owasp.org/Top1
 - Rate limiting is per IP + email. A distributed attack on one account from many IPs would need an additional per-account limit.
 - No automated dependency licence check or SBOM generation.
 - No penetration test has been done; this is a self-review.
+
+## Reporting a vulnerability
+
+Please don't open a public issue. Email the maintainer (see the GitHub profile)
+with the steps to reproduce; you'll get a reply within a few days. This is a
+portfolio project that isn't hosted publicly, so no real user data is at risk.

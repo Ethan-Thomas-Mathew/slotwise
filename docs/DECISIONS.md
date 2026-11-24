@@ -268,3 +268,49 @@ Each entry: **Decision → Alternatives considered → Why this one → Trade-of
 - **Decision:** Inviting a team member still emails them, and the API also returns the link so the owner can copy it into WhatsApp or SMS.
 - **Why:** Small businesses often don't have reliable email set up, and invites land in spam. Without this, an owner without email couldn't add staff at all.
 - **Trade-off:** The link no longer proves the person controls that email address. The owner could open it themselves and set a password for that email. The damage is limited: the real owner of the address can take the account back with "Forgot password" (which also logs out every other session), and the invite only grants staff access to the inviting owner's own business. The link is still single-use and expires in 7 days.
+
+## D44. Metrics on a separate internal port, labelled by route template
+
+- **Decision:** The API and the worker expose Prometheus metrics on their own ports (9464, 9465), bound to 127.0.0.1 by default. In Docker they listen inside the private network so Prometheus can reach them, but the ports are not published and nginx doesn't proxy them. HTTP metrics use the route template (`/bookings/:id`) as the label; unknown URLs share one `unmatched` label.
+- **Why:** Metrics reveal traffic patterns and internals, so they don't belong on the public port. Labelling by raw URL would put booking ids and slugs into the metrics and let anyone create unlimited new time series (a memory attack) by requesting random URLs.
+- **Guard rail:** `local-only.test.ts` fails if any port in `docker-compose.yml` isn't bound to 127.0.0.1, or if a metrics port is published.
+
+## D45. Prometheus + Grafana as an opt-in profile, with no default password
+
+- **Decision:** `docker compose --profile observability` adds Prometheus (alert rules, 7-day retention) and Grafana with the datasource and dashboard provisioned from files. Grafana shows the dashboard read-only to anonymous viewers; the login form and basic auth are off, and the admin password is random on every start and never printed. Update checks and telemetry are off.
+- **Why:** Monitoring is part of running a service, but most demo runs don't need two more containers. A dashboard nobody can log in to can't be changed by mistake, and "admin/admin" is the classic default-credential hole.
+- **Alerts are tested:** `alerts.test.yml` feeds fake metric histories through `promtool test rules`, so a typo in a PromQL expression fails CI instead of silently never firing. Locally, alerts show at `/alerts`; a real deployment would add Alertmanager to send them somewhere.
+
+## D46. API docs generated from the validation schemas
+
+- **Decision:** `src/openapi/spec.ts` lists every route with the same Zod schemas the route uses, and turns them into an OpenAPI 3.1 document (`z.toJSONSchema`). Swagger UI serves it at `/docs` (`/api/docs` through the web app). Tests check: every served route is documented and vice versa, the document is valid OpenAPI, and the committed `docs/openapi.json` is current.
+- **Alternatives:** Hand-written YAML (drifts from the code within weeks); generating from Fastify route schemas (would mean rewriting every route's validation).
+- **Safety:** Off by default when `NODE_ENV=production` (no free map of the API), its own strict CSP, no calls to swagger.io's validator, and "Try it out" off by default.
+
+## D47. Backups are proven by restoring them, never over live data
+
+- **Decision:** `pnpm db:backup` writes a compressed `pg_dump` plus a SHA-256 checksum into git- and docker-ignored `backups/`. `pnpm db:restore-drill` checks the checksum, restores into a separate scratch database, compares tables, migrations and RLS policies with the live database, and drops the scratch copy. Restoring over live data is a manual, documented step in the runbook.
+- **Why:** A backup is only useful if it restores. Making the automatic tool unable to touch the live database means running it can never make things worse.
+- **Implementation:** The tools run inside the Postgres container by default (nothing to install on Windows); arguments are passed as a list, never through a shell, and passwords via environment variables.
+
+## D48. Every migration is tested in both directions
+
+- **Decision:** `migrations.test.ts` applies all migrations to an empty database, takes a fingerprint of the schema (columns, constraints, indexes, policies, functions, enum types), rolls them back one by one, re-applies them, and requires the identical fingerprint.
+- **Why:** A `down()` that has never run is a guess, and the moment you need one is during an incident.
+
+## D49. Erasing an account anonymises it
+
+- **Decision:** A customer can download their data (profile, memberships, bookings, payments) and erase their account. Erasure needs the password and the typed word DELETE, is refused for owners, team members and anyone with upcoming bookings, and runs in one transaction: name, email and password are replaced, `deleted_at` is set, all sessions and tokens are deleted, the email is removed from old audit entries (by one narrow `SECURITY DEFINER` function, since the app can't update the audit log), and each business gets an audit entry without personal data.
+- **Why:** India's DPDP Act (2023) gives people the right to a copy of their data and to erasure, but each business must still keep booking and payment records for its accounts. Anonymising keeps the records and removes the person.
+- **Not covered:** Payment-provider webhook payloads (kept as financial records) and logs (they expire). Closing a whole business isn't self-service: upcoming bookings need refunds first.
+
+## D50. Supply-chain hygiene in CI
+
+- **Decision:** GitHub Actions are pinned to full commit SHAs and jobs get read-only permissions. Container images are scanned with Trivy, installed from a pinned release whose checksum is written in the workflow. The scan fails on fixable CRITICAL issues and lists HIGH ones. Dependabot watches npm, Actions, Dockerfiles and compose images.
+- **Why:** In March 2026 attackers moved 76 of 77 version tags of `aquasecurity/trivy-action` to credential-stealing code; workflows that referenced tags ran it, workflows pinned to SHAs did not. Running the scanner binary ourselves, checksum-verified, avoids depending on that action at all.
+- **Trade-off:** Pinned versions don't update themselves; Dependabot opens pull requests for them.
+
+## D51. A pre-commit hook, but CI is the real gate
+
+- **Decision:** husky + lint-staged run ESLint and Prettier on the staged files only, so the hook takes seconds. Type checking and tests stay in CI.
+- **Why:** Fast feedback before a commit without making commits slow. Hooks can be skipped (`--no-verify`) and don't run on a fresh clone until `pnpm install`, so CI repeats every check.

@@ -2,7 +2,7 @@
 
 **Multi-tenant booking for small service businesses.** Salons, clinics and coaching centres each get a booking page (`/b/your-business`). Customers pick a service, a person (or "anyone available") and a time, pay by UPI or card through Razorpay, and get a confirmation and a reminder the day before. Owners manage services, staff hours and bookings; staff see their schedule. Every business's data is walled off from every other's, a slot can never be sold twice, and payments are confirmed only by the payment provider's signed webhook.
 
-> Built as a portfolio project to industry standards: 300+ automated tests, CI, Docker, and written design decisions. See [`docs/DECISIONS.md`](docs/DECISIONS.md) and [`docs/LEARNING.md`](docs/LEARNING.md).
+> Built as a portfolio project to industry standards: 350 automated tests, CI, Docker, monitoring with alerts, API docs, backups, and written design decisions. See [`docs/DECISIONS.md`](docs/DECISIONS.md) and [`docs/LEARNING.md`](docs/LEARNING.md).
 
 ---
 
@@ -70,34 +70,34 @@ More diagrams (request lifecycle, payment sequence, booking states) are in [`doc
 
 ## Tech stack
 
-| Layer         | Choice                                                               | Why                                                                       |
-| ------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Language      | TypeScript (strict) everywhere                                       | One language, compile-time safety across API, UI and shared schemas       |
-| Monorepo      | pnpm workspaces                                                      | Shared Zod schemas change in the same commit as their users               |
-| API           | Fastify                                                              | Fast, plugin-based, `inject()` makes HTTP tests quick                     |
-| Validation    | Zod (shared package)                                                 | Same rules in the browser and on the server                               |
-| Database      | PostgreSQL 16                                                        | RLS, exclusion constraints, savepoints, advisory locks                    |
-| Query builder | Kysely + SQL migrations                                              | Type-checked queries with the SQL still visible ([D3](docs/DECISIONS.md)) |
-| Auth          | DB sessions, Argon2id (`@node-rs/argon2`)                            | Revocable sessions, explainable code ([D10](docs/DECISIONS.md))           |
-| Jobs          | BullMQ + Redis                                                       | Delayed jobs, retries with backoff, job schedulers                        |
-| Payments      | Razorpay (+ a mock that drives the real webhook)                     | Indian payments; runnable without keys                                    |
-| Email         | Nodemailer → Mailpit (dev) / any SMTP (prod)                         | Provider-agnostic                                                         |
-| Frontend      | React, Vite, TanStack Query, React Router, Tailwind, React Hook Form | Cached server state, typed forms, fast dev loop                           |
-| Observability | pino (JSON logs + request ids), Sentry, `/health` + `/ready`         | Debuggable in production                                                  |
-| Tests         | Vitest, Testing Library, Playwright + axe                            | Unit → integration → browser + accessibility                              |
-| Delivery      | Docker, docker compose, GitHub Actions                               | One-command local run, CI on every push                                   |
+| Layer         | Choice                                                                             | Why                                                                       |
+| ------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Language      | TypeScript (strict) everywhere                                                     | One language, compile-time safety across API, UI and shared schemas       |
+| Monorepo      | pnpm workspaces                                                                    | Shared Zod schemas change in the same commit as their users               |
+| API           | Fastify                                                                            | Fast, plugin-based, `inject()` makes HTTP tests quick                     |
+| Validation    | Zod (shared package)                                                               | Same rules in the browser and on the server                               |
+| Database      | PostgreSQL 16                                                                      | RLS, exclusion constraints, savepoints, advisory locks                    |
+| Query builder | Kysely + SQL migrations                                                            | Type-checked queries with the SQL still visible ([D3](docs/DECISIONS.md)) |
+| Auth          | DB sessions, Argon2id (`@node-rs/argon2`)                                          | Revocable sessions, explainable code ([D10](docs/DECISIONS.md))           |
+| Jobs          | BullMQ + Redis                                                                     | Delayed jobs, retries with backoff, job schedulers                        |
+| Payments      | Razorpay (+ a mock that drives the real webhook)                                   | Indian payments; runnable without keys                                    |
+| Email         | Nodemailer → Mailpit (dev) / any SMTP (prod)                                       | Provider-agnostic                                                         |
+| Frontend      | React, Vite, TanStack Query, React Router, Tailwind, React Hook Form               | Cached server state, typed forms, fast dev loop                           |
+| Observability | pino (JSON logs + request ids), Prometheus + Grafana, Sentry, `/health` + `/ready` | Debuggable in production; alerts with a runbook                           |
+| Tests         | Vitest, Testing Library, Playwright + axe                                          | Unit → integration → browser + accessibility                              |
+| Delivery      | Docker, docker compose, GitHub Actions                                             | One-command local run, CI on every push                                   |
 
 ---
 
 ## Tests
 
-| Level       | What                                                                                                                                                                                                                         | Count                     | Run             |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------- |
-| Unit        | Slot generator (DST, day boundaries, time off…), state machine (all 36 transitions), cancellation policy, frontend helpers                                                                                                   | 76 API + 9 web + 1 shared | `pnpm test`     |
-| Integration | Real HTTP (Fastify `inject`) against real Postgres and Redis: auth, roles, tenant isolation, bookings, concurrency (incl. "anyone available"), payments, webhooks, jobs, SMTP                                                | 220                       | `pnpm test`     |
-| End-to-end  | Real Chrome: owner signup → service + hours → customer books and pays → owner sees it → customer cancels → refund; staff invite and password reset by following the real email links; axe accessibility checks on main pages | 13                        | `pnpm test:e2e` |
+| Level       | What                                                                                                                                                                                                                                                                                   | Count                     | Run             |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------- |
+| Unit        | Slot generator (DST, day boundaries, time off…), state machine (all 36 transitions), cancellation policy, "local only" guard on docker-compose, frontend helpers                                                                                                                       | 80 API + 9 web + 1 shared | `pnpm test`     |
+| Integration | Real HTTP (Fastify `inject`) against real Postgres and Redis: auth, roles, tenant isolation, bookings, concurrency (incl. "anyone available"), payments, webhooks, jobs, SMTP, metrics, API docs coverage, migrations up/down, backup + restore drill, data export and account erasure | 246                       | `pnpm test`     |
+| End-to-end  | Real Chrome: owner signup → service + hours → customer books and pays → owner sees it → customer cancels → refund; staff invite and password reset by following the real email links; download my data and delete my account; axe accessibility checks on main pages                   | 14                        | `pnpm test:e2e` |
 
-API code coverage: **~90% of lines, ~78% of branches**. CI fails if it drops below 85% / 72% (`pnpm test:coverage`).
+API code coverage: **~92% of lines, ~80% of branches**. CI fails if it drops below 85% / 72% (`pnpm test:coverage`).
 
 The integration tests create a fresh `slotwise_test` database and migrate it before every run. Each test makes its own tenants, so tests never depend on each other.
 
@@ -142,6 +142,20 @@ Requirements: Node 22, pnpm 10, Docker.
 
 ---
 
+## Operating it
+
+Everything below runs locally and is bound to `127.0.0.1`, so nothing is reachable from other devices.
+
+| What                | How                                                                                                                                                     |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API docs            | http://localhost:8080/api/docs (OpenAPI 3.1, generated from the same schemas that validate requests: [`docs/openapi.json`](docs/openapi.json))          |
+| Monitoring          | `docker compose --profile full --profile observability up -d --build`, then Grafana at http://localhost:3001 and alerts at http://localhost:9090/alerts |
+| Backups             | `pnpm db:backup`, then `pnpm db:restore-drill` to prove the backup restores (into a scratch database, never over live data)                             |
+| When an alert fires | [`docs/RUNBOOK.md`](docs/RUNBOOK.md): one section per alert, plus backups and privacy requests                                                          |
+| Privacy (DPDP Act)  | Customers download their data and erase their account from **Your account**                                                                             |
+
+---
+
 ## Trade-offs and known limitations
 
 - **Kysely instead of Prisma:** more hand-written SQL and hand-kept table types (a test checks they match the database), in exchange for direct use of RLS, constraints and savepoints.
@@ -173,3 +187,6 @@ Requirements: Node 22, pnpm 10, Docker.
 - [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md): load test results
 - [`docs/INTERVIEW.md`](docs/INTERVIEW.md): likely interview questions and where the answers are in the code
 - [`docs/EXERCISES.md`](docs/EXERCISES.md): hands-on changes to practise on this codebase
+- [`docs/RUNBOOK.md`](docs/RUNBOOK.md): what to do when an alert fires; backups; privacy requests
+- [`CONTRIBUTING.md`](CONTRIBUTING.md): the branch → pull request → CI workflow, and the rules that keep it safe
+- [`CHANGELOG.md`](CHANGELOG.md): what changed in each version
