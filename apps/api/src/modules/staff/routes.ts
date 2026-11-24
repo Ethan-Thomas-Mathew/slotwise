@@ -12,6 +12,7 @@ import {
 } from '@slotwise/shared';
 import { z } from 'zod';
 import type { AppDeps } from '../../app';
+import { PG, pgErrorCode } from '../../db/pg-errors';
 import type { TenantTx } from '../../db/tenant-tx';
 import { AppError, notFound } from '../../lib/errors';
 import { idParam } from '../../lib/params';
@@ -52,9 +53,10 @@ export async function staffRoutes(app: FastifyInstance, { db }: AppDeps) {
       await mustBeStaff(tx, id);
       try {
         await repo.setStaffServices(tx, id, [...new Set(body.serviceIds)]);
-      } catch {
-        // Composite foreign key rejected an unknown (or other-tenant) service id.
-        throw notFound('Service');
+      } catch (err) {
+        // The composite foreign key rejects an unknown (or other-tenant) service id.
+        if (pgErrorCode(err) === PG.FOREIGN_KEY_VIOLATION) throw notFound('Service');
+        throw err;
       }
       await writeAudit(tx, {
         action: 'staff.services.update',
