@@ -488,6 +488,19 @@ honest. A single long file mixes big and small choices and is rarely read end to
 The same phase removed decorative comment dividers and comments that only restated the
 code, and ended with a fresh-clone run of every check.
 
+**What the first CI run caught.** Pushing to GitHub ran CI on a clean machine, and it
+failed twice where the local checks had passed:
+
+- The idle-transaction timeout from phase 2 worked, but when Postgres closed the
+  connection, node-postgres raised an `error` event nobody listened to, and Node treats
+  that as a crash. The local test run had shown "2 errors" under the passing tests; the
+  check only looked at the test count and missed it. The pool now listens for these
+  events and logs them. Lesson: a check is only as good as what it inspects; the exit
+  code is the thing to trust.
+- The backup test used the runner's own `pg_restore`, which is newer than the Postgres 16
+  server, and newer tools send settings older servers reject. CI now runs the tools
+  inside the Postgres container, as the Docker setup already did.
+
 ## Part 3: Five questions an interviewer is most likely to ask
 
 Answer in your own words; the notes below are what a good answer contains. Each points

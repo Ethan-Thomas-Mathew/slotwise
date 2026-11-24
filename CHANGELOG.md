@@ -18,6 +18,8 @@ Upgrade after an audit (`docs/AUDIT.md`); every change is explained in `docs/WAL
 - Parallel holds could exceed the 3-unpaid-holds limit.
 - A hold racing an account erasure could book for the erased account.
 - A signed but malformed webhook body caused a server error.
+- A connection closed by the database (for example by the idle-transaction timeout)
+  crashed the process.
 
 ### Added
 
