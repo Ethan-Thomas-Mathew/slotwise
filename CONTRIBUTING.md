@@ -27,7 +27,8 @@ installed and nothing checks your commits locally; CI still runs every check.
    thresholds, E2E tests, Docker builds with a vulnerability scan, and the
    monitoring config checks.
 5. Squash-merge, so `main` has one commit per change.
-6. Add a line to `CHANGELOG.md` under **Unreleased**.
+6. Add a line to `CHANGELOG.md` under **Unreleased**. A significant design decision
+   also gets a short ADR in `docs/adr/` (context, decision, consequences, alternatives).
 
 ## Rules that keep the system safe
 

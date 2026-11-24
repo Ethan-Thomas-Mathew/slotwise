@@ -353,8 +353,8 @@ async function onPaymentCaptured(
   }
 
   if (booking.status === 'EXPIRED') {
-    // Paid after the hold expired. Re-confirm if the slot is still free;
-    // otherwise refund. (See DECISIONS.md D25.)
+    // Paid after the hold expired. Re-confirm if the slot is still free (better for
+    // customer and business than always refunding); otherwise refund. ADR 0007.
     if (booking.start_at.getTime() <= Date.now()) {
       await refund('Paid after the appointment time had passed');
       return 'processed';

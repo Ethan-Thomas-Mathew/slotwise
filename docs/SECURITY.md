@@ -65,7 +65,7 @@ A self-review of Slotwise against the [OWASP Top 10:2025](https://owasp.org/Top1
 
 **What Slotwise does:**
 
-- **Double booking is impossible by design:** a Postgres exclusion constraint, not an `if`. A 20-way concurrency test proves it, and its deadlock finding is documented in `DECISIONS.md` D19.
+- **Double booking is impossible by design:** a Postgres exclusion constraint, not an `if`. A 20-way concurrency test proves it, and its deadlock finding is documented in [ADR 0004](adr/0004-preventing-double-booking.md).
 - **Payment amount always comes from the database**, never the browser. One open order per booking (unique index).
 - **The browser never confirms a payment;** only the signed webhook does.
 - Holds expire, and one customer can hold at most 3 unpaid slots, so nobody can block a whole calendar.

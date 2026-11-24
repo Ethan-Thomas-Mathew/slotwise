@@ -267,7 +267,10 @@ export async function inviteStaff(
   const link = `${webOrigin}/accept-invite?token=${encodeURIComponent(token)}`;
   await jobs.sendEmail(staffInviteEmail(email, input.name, tenant.name, link));
   // Also returned to the owner, who can share it directly (e.g. on WhatsApp)
-  // if email isn't set up or lands in spam. See DECISIONS.md D43.
+  // if email isn't set up or lands in spam. The cost: the link no longer proves the
+  // invitee controls that address. Acceptable because it only grants staff access to
+  // this owner's business, is single-use, expires in 7 days, and the address's real
+  // owner can take the account back with "Forgot password".
   return { inviteLink: link };
 }
 

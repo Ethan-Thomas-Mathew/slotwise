@@ -69,7 +69,7 @@ work waits in Redis (and the database outbox) and runs when the worker is back.
 2. All routes: check "Event loop lag" (CPU-heavy code) and the database
    (`docker stats` for CPU and memory).
 3. One route: reproduce with `pnpm --filter @slotwise/api bench` and look at the query plan
-   (`EXPLAIN ANALYZE`). See docs/PERFORMANCE.md.
+   (`EXPLAIN ANALYZE`). The benchmark method is in the README.
 
 ### Jobs failing
 

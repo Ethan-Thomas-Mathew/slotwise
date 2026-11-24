@@ -13,4 +13,4 @@
 - [ ] New or changed routes: validated with a Zod schema, listed in `src/openapi/spec.ts`, and `pnpm --filter @slotwise/api openapi` re-run
 - [ ] Database changes are a new migration with a working `down()` (never edit an old one)
 - [ ] No secrets, personal data or backups in the diff
-- [ ] Docs updated if behaviour changed (README, RUNBOOK, DECISIONS)
+- [ ] Docs updated if behaviour changed (README, RUNBOOK, an ADR for a significant decision, WALKTHROUGH)
