@@ -81,9 +81,7 @@ export function OverviewPage() {
               <ul className="divide-y divide-line">
                 {agenda.data.bookings.map((b) => (
                   <li key={b.id} className="grid grid-cols-[5rem_1fr_auto] items-center gap-3 py-3">
-                    <span className="tabular font-display font-semibold">
-                      {fmtTime(b.startAt, tz)}
-                    </span>
+                    <span className="tabular font-semibold">{fmtTime(b.startAt, tz)}</span>
                     <span>
                       <span className="block font-medium">{b.customer.name}</span>
                       <span className="text-sm text-muted">

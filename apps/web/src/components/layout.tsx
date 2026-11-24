@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 
 export function Wordmark() {
   return (
-    <Link to="/" className="font-display text-xl font-semibold tracking-tight text-ink">
+    <Link to="/" className="text-xl font-semibold tracking-tight text-ink">
       slot<span className="text-peacock">wise</span>
     </Link>
   );

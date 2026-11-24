@@ -38,7 +38,7 @@ export function BookingRow({
         <p className="tabular font-medium">
           {fmtDateTime(booking.startAt, tz)} to {fmtTime(booking.endAt, tz)}
         </p>
-        <p className="text-[15px] text-muted">
+        <p className="text-body text-muted">
           {booking.service.name} with {booking.staff.name}
           {showCustomer && <> for {booking.customer.name}</>}
         </p>
@@ -106,11 +106,11 @@ function CancelDialog({
   });
   return (
     <Dialog open={open} onClose={onClose} title="Cancel this booking?">
-      <p className="text-[15px]">
+      <p className="text-body">
         {booking.service.name} on {fmtDateTime(booking.startAt, tenant?.timezone ?? 'Asia/Kolkata')}
         .
       </p>
-      <p className="mt-2 text-[15px] text-muted">
+      <p className="mt-2 text-body text-muted">
         {booking.status === 'HELD'
           ? "You haven't paid yet, so nothing will be charged."
           : refunds

@@ -62,7 +62,7 @@ export function TeamPage() {
             <Panel key={s.membershipId} className="p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="font-display text-lg font-semibold">{s.name}</p>
+                  <p className="text-lg font-semibold">{s.name}</p>
                   <p className="text-sm text-muted">
                     {s.email}
                     {s.role === 'OWNER' && ', owner'}
@@ -162,7 +162,7 @@ function InviteDialog({ onClose }: { onClose: () => void }) {
     const link = invite.data.inviteLink;
     return (
       <Dialog open onClose={onClose} title="Invite sent">
-        <p className="text-[15px]">
+        <p className="text-body">
           We emailed {invite.variables.name} a link to join. You can also send them this link
           yourself. It works once, for 7 days.
         </p>
@@ -481,7 +481,7 @@ function RemoveDialog({ staff, onClose }: { staff: StaffDto; onClose: () => void
   });
   return (
     <Dialog open onClose={onClose} title={`Remove ${staff.name}?`}>
-      <p className="text-[15px] text-muted">
+      <p className="text-body text-muted">
         They'll lose access to your schedule. Their past bookings stay in your records.
       </p>
       {remove.isError && (

@@ -75,7 +75,7 @@ export function LandingPage() {
           className="rounded-[var(--radius-panel)] border border-line bg-surface p-6"
         >
           <figcaption className="mb-4 flex items-baseline justify-between">
-            <span className="font-display text-xl font-semibold">Tuesday, 1 December</span>
+            <span className="text-xl font-semibold">Tuesday, 1 December</span>
             <span className="text-sm text-muted">Women's haircut, 45 min</span>
           </figcaption>
           <ol className="border-l-2 border-line">

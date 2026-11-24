@@ -77,10 +77,8 @@ export function DateStrip({
             <span className={cx('text-xs', selected ? 'text-white/80' : 'text-muted')}>
               {day.toFormat('ccc')}
             </span>
-            <span className="tabular font-display text-lg font-semibold leading-tight">
-              {day.toFormat('d')}
-            </span>
-            <span className={cx('text-[11px]', selected ? 'text-white/80' : 'text-muted')}>
+            <span className="tabular text-lg font-semibold leading-tight">{day.toFormat('d')}</span>
+            <span className={cx('text-xs', selected ? 'text-white/80' : 'text-muted')}>
               {day.toFormat('LLL')}
             </span>
           </button>

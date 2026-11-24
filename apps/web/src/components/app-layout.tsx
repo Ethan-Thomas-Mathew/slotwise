@@ -81,7 +81,7 @@ export function AppLayout() {
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
                   cx(
-                    'rounded-[var(--radius-control)] px-3 py-2 text-[15px]',
+                    'rounded-[var(--radius-control)] px-3 py-2 text-body',
                     isActive
                       ? 'bg-peacock-tint font-medium text-peacock-dark'
                       : 'text-ink hover:bg-paper',

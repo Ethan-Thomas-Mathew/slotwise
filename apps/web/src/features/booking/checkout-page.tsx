@@ -141,7 +141,7 @@ export function CheckoutPage() {
               aria-live="off"
             >
               <p className="text-sm">We're holding this time for you</p>
-              <p className="tabular font-display text-4xl font-semibold">{left}</p>
+              <p className="tabular text-4xl font-semibold">{left}</p>
             </div>
             <Summary booking={b} tz={tz} />
             {error && (
@@ -218,7 +218,7 @@ export function CheckoutPage() {
 
 function Summary({ booking, tz }: { booking: BookingDto; tz: string }) {
   return (
-    <dl className="mt-5 grid grid-cols-[7rem_1fr] gap-y-2 text-[15px]">
+    <dl className="mt-5 grid grid-cols-[7rem_1fr] gap-y-2 text-body">
       <dt className="text-muted">Service</dt>
       <dd>{booking.service.name}</dd>
       <dt className="text-muted">With</dt>

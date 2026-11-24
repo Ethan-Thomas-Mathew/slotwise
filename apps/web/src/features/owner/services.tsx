@@ -114,7 +114,7 @@ export function ServicesPage() {
         }}
         title={`Delete ${deleting?.name ?? 'service'}?`}
       >
-        <p className="text-[15px] text-muted">
+        <p className="text-body text-muted">
           It disappears from your booking page. Services that already have bookings can only be
           hidden.
         </p>

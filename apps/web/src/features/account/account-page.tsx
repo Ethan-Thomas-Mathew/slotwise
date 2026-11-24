@@ -19,7 +19,7 @@ export function AccountPage() {
       <div className="flex max-w-2xl flex-col gap-6">
         <Panel className="p-6">
           <h2 className="text-lg font-semibold">Your details</h2>
-          <dl className="mt-3 grid grid-cols-[6rem_1fr] gap-y-1 text-[15px]">
+          <dl className="mt-3 grid grid-cols-[6rem_1fr] gap-y-1 text-body">
             <dt className="text-muted">Name</dt>
             <dd>{me.user.name}</dd>
             <dt className="text-muted">Email</dt>
@@ -49,7 +49,7 @@ function DownloadPanel() {
   return (
     <Panel className="p-6">
       <h2 className="text-lg font-semibold">Download your data</h2>
-      <p className="mt-2 text-[15px] text-muted">
+      <p className="mt-2 text-body text-muted">
         A file with your details, the businesses you belong to, and all your bookings and payments.
       </p>
       {download.isError && (
@@ -74,7 +74,7 @@ function DeletePanel({ blockedBy }: { blockedBy: string[] }) {
   return (
     <Panel className="border-danger/30 p-6">
       <h2 className="text-lg font-semibold">Delete your account</h2>
-      <p className="mt-2 text-[15px] text-muted">
+      <p className="mt-2 text-body text-muted">
         Your name and email are erased and you can't log in again. Businesses keep a record of your
         past bookings for their accounts, but it will say "Deleted user" instead of your name.
         Cancel any upcoming bookings first.
@@ -122,7 +122,7 @@ function DeleteDialog({ open, onClose }: { open: boolean; onClose: () => void })
           erase.mutate({ password: form.password, confirm: form.confirm as 'DELETE' });
         }}
       >
-        <p className="text-[15px]">This can't be undone.</p>
+        <p className="text-body">This can't be undone.</p>
         {erase.isError && !Object.keys(errors).length && (
           <Alert>{(erase.error as ApiError).message}</Alert>
         )}

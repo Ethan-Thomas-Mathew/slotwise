@@ -139,7 +139,7 @@ function ScheduleItem({ booking, tz }: { booking: BookingDto; tz: string }) {
   const started = new Date(booking.startAt).getTime() <= now;
   return (
     <li className="grid grid-cols-[5.5rem_1fr] gap-4 py-4 sm:grid-cols-[6rem_1fr_auto] sm:items-center">
-      <p className="tabular font-display text-lg font-semibold">{fmtTime(booking.startAt, tz)}</p>
+      <p className="tabular text-lg font-semibold">{fmtTime(booking.startAt, tz)}</p>
       <div>
         <p className="font-medium">{booking.customer.name}</p>
         <p className="text-sm text-muted">

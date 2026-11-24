@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/bricolage-grotesque';
 @import '@fontsource-variable/onest';
 
 /*
@@ -22,8 +21,11 @@
   --color-danger: #b42318;
   --color-danger-tint: #fdecea;
 
-  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Onest Variable', ui-sans-serif, system-ui, sans-serif;
+
+  /* Body copy in panels and forms sits between Tailwind's sm (14px) and base (16px). */
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.5;
 
   --radius-control: 8px;
   --radius-panel: 14px;
@@ -39,7 +41,6 @@
   h1,
   h2,
   h3 {
-    font-family: var(--font-display);
     letter-spacing: -0.01em;
     text-wrap: balance;
   }

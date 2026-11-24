@@ -77,7 +77,7 @@ export const Field = forwardRef<
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
         className={cx(
-          'h-10 rounded-[var(--radius-control)] border bg-surface px-3 text-[15px] outline-none',
+          'h-10 rounded-[var(--radius-control)] border bg-surface px-3 text-body outline-none',
           'focus:border-peacock',
           error ? 'border-danger' : 'border-line',
         )}
@@ -112,7 +112,7 @@ export const SelectField = forwardRef<
         id={id}
         aria-invalid={error ? true : undefined}
         className={cx(
-          'h-10 rounded-[var(--radius-control)] border bg-surface px-2.5 text-[15px] outline-none focus:border-peacock',
+          'h-10 rounded-[var(--radius-control)] border bg-surface px-2.5 text-body outline-none focus:border-peacock',
           error ? 'border-danger' : 'border-line',
         )}
         {...rest}
@@ -187,7 +187,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
 export function EmptyState({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <div className="rounded-[var(--radius-panel)] border border-dashed border-line px-6 py-10 text-center">
-      <p className="font-display text-lg">{title}</p>
+      <p className="text-lg">{title}</p>
       {children && <div className="mx-auto mt-2 max-w-md text-sm text-muted">{children}</div>}
     </div>
   );
