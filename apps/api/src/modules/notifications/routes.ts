@@ -10,7 +10,7 @@ import { inTenant, requireRole } from '../../plugins/auth';
 import { writeAudit } from '../audit/repo';
 import { listNotifications, retryNotification } from './repo';
 
-const Query = z.object({
+export const NotificationListQuery = z.object({
   status: z.enum(['FAILED', 'PENDING', 'SENT']).optional(),
   limit: z.coerce.number().int().min(1).max(200).default(50),
 });
@@ -18,7 +18,7 @@ const Query = z.object({
 /** Owners can see emails that failed to send (after all retries) and retry them. */
 export async function notificationRoutes(app: FastifyInstance, { db, jobs }: AppDeps) {
   app.get('/notifications', { preHandler: requireRole('OWNER') }, async (req) => {
-    const q = parse(Query, req.query);
+    const q = parse(NotificationListQuery, req.query);
     const rows = await inTenant(db, req, (tx) => listNotifications(tx, q));
     return respond(z.object({ notifications: z.array(NotificationDto) }), {
       notifications: rows.map((n) => ({

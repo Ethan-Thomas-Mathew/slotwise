@@ -21,9 +21,9 @@ import { writeAudit } from '../audit/repo';
 import * as availability from '../availability/repo';
 import * as repo from './repo';
 
-const StaffListResponse = z.object({ staff: z.array(StaffDto) });
-const AvailabilityResponse = z.object({ rules: z.array(AvailabilityRule) });
-const TimeOffListResponse = z.object({ timeOff: z.array(TimeOffDto) });
+export const StaffListResponse = z.object({ staff: z.array(StaffDto) });
+export const AvailabilityResponse = z.object({ rules: z.array(AvailabilityRule) });
+export const TimeOffListResponse = z.object({ timeOff: z.array(TimeOffDto) });
 
 async function mustBeStaff(tx: TenantTx, membershipId: string) {
   const s = await repo.getStaffMember(tx, membershipId);

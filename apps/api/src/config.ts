@@ -37,6 +37,9 @@ const EnvSchema = z.object({
   METRICS_PORT: z.coerce.number().int().default(9464),
   WORKER_METRICS_PORT: z.coerce.number().int().default(9465),
 
+  /** Serve interactive API docs at /docs. Default: on unless NODE_ENV=production. */
+  API_DOCS: z.enum(['true', 'false']).optional(),
+
   SENTRY_DSN: z.string().optional(),
   /** Demo deployments only: allow the mock payment provider in production. */
   ALLOW_MOCK_PAYMENTS: z.enum(['true', 'false']).default('false'),

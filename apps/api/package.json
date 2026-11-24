@@ -15,13 +15,16 @@
     "worker": "tsx --env-file-if-exists=.env src/worker.ts",
     "db:reset": "tsx --env-file-if-exists=.env scripts/reset-db.ts",
     "test:coverage": "vitest run --coverage",
-    "bench": "tsx --env-file-if-exists=.env scripts/bench.ts"
+    "bench": "tsx --env-file-if-exists=.env scripts/bench.ts",
+    "openapi": "tsx scripts/openapi.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.5",
     "@fastify/cors": "^11.4.3",
     "@fastify/helmet": "^13.2.0",
     "@fastify/rate-limit": "^10.3.0",
+    "@fastify/swagger": "^9.9.5",
+    "@fastify/swagger-ui": "^5.2.6",
     "@node-rs/argon2": "^2.2.2",
     "@sentry/node": "^10.78.0",
     "@slotwise/shared": "workspace:*",
@@ -38,6 +41,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@apidevtools/swagger-parser": "^12.1.0",
     "@types/luxon": "^3.7.6",
     "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.23.1",

@@ -3,6 +3,8 @@ import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import swagger, { type StaticDocumentSpec } from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 import { sql } from 'kysely';
 import type { Redis } from 'ioredis';
 import { randomUUID } from 'node:crypto';
@@ -12,6 +14,7 @@ import type { Jobs } from './jobs/types';
 import type { PaymentProvider } from './modules/payments/provider';
 import { AppError } from './lib/errors';
 import { httpDuration } from './lib/metrics';
+import { buildOpenApiDocument } from './openapi/spec';
 import { registerAuth } from './plugins/auth';
 import { registerErrorHandler } from './plugins/error-handler';
 import { authRoutes } from './modules/auth/routes';
@@ -24,6 +27,12 @@ import { publicRoutes } from './modules/public/routes';
 import { serviceRoutes } from './modules/services/routes';
 import { staffRoutes } from './modules/staff/routes';
 import { tenantRoutes } from './modules/tenants/routes';
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    routeList: { method: string; url: string }[];
+  }
+}
 
 /** Everything the HTTP app needs, passed in from outside (makes testing easy). */
 export interface AppDeps {
@@ -58,6 +67,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     requestIdHeader: false,
     bodyLimit: 100 * 1024,
     trustProxy: config.NODE_ENV === 'production',
+  });
+
+  // Keep a list of every route, so a test can check the API docs cover them all.
+  const routeList: { method: string; url: string }[] = [];
+  app.decorate('routeList', routeList);
+  app.addHook('onRoute', (r) => {
+    for (const m of [r.method].flat()) routeList.push({ method: m, url: r.url });
   });
 
   registerErrorHandler(app);
@@ -133,6 +149,37 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await paymentRoutes(app, deps);
   await notificationRoutes(app, deps);
   await dashboardRoutes(app, deps);
+
+  // Interactive API docs at /docs (through the web app: /api/docs). On by default
+  // locally, off by default in production so the API's map is not handed out.
+  if (
+    config.API_DOCS === 'true' ||
+    (config.API_DOCS === undefined && config.NODE_ENV !== 'production')
+  ) {
+    await app.register(swagger, {
+      mode: 'static',
+      specification: {
+        // Our generator builds plain objects; the plugin's types want literal unions.
+        document: buildOpenApiDocument() as unknown as StaticDocumentSpec['document'],
+      },
+    });
+    await app.register(swaggerUi, {
+      routePrefix: '/docs',
+      // The UI's own CSP (the API's default would block its scripts), minus the
+      // external validator host and the http->https upgrade, which breaks localhost.
+      staticCSP: true,
+      transformStaticCSP: (csp) =>
+        csp.replace(' validator.swagger.io', '').replace(/\s*upgrade-insecure-requests;/, ''),
+      uiConfig: { tryItOutEnabled: false, withCredentials: true, validatorUrl: null },
+      uiHooks: {
+        // "/docs" -> "docs/" (relative), so it also works behind the /api proxy.
+        onRequest: (req, reply, done) => {
+          if (req.url.split('?')[0] === '/docs') return reply.redirect('docs/');
+          done();
+        },
+      },
+    });
+  }
 
   return app;
 }

@@ -10,7 +10,7 @@ import { inTenant, requireRole } from '../../plugins/auth';
 import { writeAudit } from '../audit/repo';
 import { getTenant, updateTenantSettings } from './repo';
 
-const TenantSettings = z.object({
+export const TenantSettings = z.object({
   name: z.string(),
   slug: z.string(),
   timezone: z.string(),
