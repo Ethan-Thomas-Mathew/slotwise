@@ -3,7 +3,7 @@ import type { DataExport, DeleteAccountRequest } from '@slotwise/shared';
 import type { Database } from '../../db/database';
 import { withSystem, withTenant, type TenantTx } from '../../db/tenant-tx';
 import { AppError } from '../../lib/errors';
-import { verifyPassword } from '../../lib/passwords';
+import { UNUSABLE_PASSWORD_HASH, verifyPassword } from '../../lib/passwords';
 import { writeAudit } from '../audit/repo';
 import { lockCustomerHolds } from '../bookings/repo';
 
@@ -202,7 +202,7 @@ export async function deleteMyAccount(
       .set({
         name: 'Deleted user',
         email: `deleted-${userId}@deleted.invalid`,
-        password_hash: '!deleted', // not a valid hash: no password can ever match
+        password_hash: UNUSABLE_PASSWORD_HASH,
         deleted_at: new Date(),
       })
       .where('id', '=', userId)

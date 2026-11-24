@@ -12,12 +12,17 @@ export function hashPassword(password: string): Promise<string> {
   return hash(password, OPTIONS);
 }
 
+/**
+ * Stored for an account that can never log in with a password (an erased account).
+ * Any value starting with "!" is treated the same way.
+ */
+export const UNUSABLE_PASSWORD_HASH = '!erased';
+
 export async function verifyPassword(storedHash: string, password: string): Promise<boolean> {
-  try {
-    return await verify(storedHash, password);
-  } catch {
-    return false;
-  }
+  if (storedHash.startsWith('!')) return false;
+  // Anything else must be a valid Argon2 hash; if it isn't, that's data corruption
+  // worth an error, not a silent "wrong password".
+  return verify(storedHash, password);
 }
 
 /**
