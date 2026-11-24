@@ -1,12 +1,14 @@
 import { createHash } from 'node:crypto';
 import { sql } from 'kysely';
 import type { FastifyBaseLogger } from 'fastify';
+import { z } from 'zod';
 import type { Database } from '../../db/database';
 import { PG, pgErrorCode } from '../../db/pg-errors';
 import { withTenant, type TenantTx } from '../../db/tenant-tx';
 import type { Jobs } from '../../jobs/types';
 import { runEffects, type Effects } from '../../lib/effects';
 import { AppError, notFound } from '../../lib/errors';
+import { parse } from '../../lib/validate';
 import { writeAudit } from '../audit/repo';
 import * as bookings from '../bookings/repo';
 import { transitionBooking } from '../bookings/state-machine';
@@ -115,20 +117,45 @@ export async function createOrderForBooking(
 // 2. Webhook: the provider tells us what happened (the source of truth)
 // ---------------------------------------------------------------------------
 
-interface RazorpayEvent {
-  event: string;
-  payload?: {
-    payment?: {
-      entity?: {
-        id?: string;
-        order_id?: string;
-        amount?: number;
-        currency?: string;
-        status?: string;
-      };
-    };
-    refund?: { entity?: { id?: string; payment_id?: string } };
-  };
+/**
+ * The parts of a Razorpay event we read. Everything is optional because event
+ * types differ; unknown fields are ignored. Checked after the signature, so a
+ * malformed body from the real provider is a 400, not a crash.
+ */
+const RazorpayEvent = z.object({
+  event: z.string(),
+  payload: z
+    .object({
+      payment: z
+        .object({
+          entity: z
+            .object({
+              id: z.string(),
+              order_id: z.string(),
+              amount: z.number().int(),
+              currency: z.string(),
+              status: z.string(),
+            })
+            .partial(),
+        })
+        .partial(),
+      refund: z
+        .object({ entity: z.object({ id: z.string(), payment_id: z.string() }).partial() })
+        .partial(),
+    })
+    .partial()
+    .optional(),
+});
+type RazorpayEvent = z.infer<typeof RazorpayEvent>;
+
+function parseEvent(rawBody: string): RazorpayEvent {
+  let json: unknown;
+  try {
+    json = JSON.parse(rawBody);
+  } catch {
+    throw new AppError('VALIDATION_ERROR', 'Webhook body is not valid JSON');
+  }
+  return parse(RazorpayEvent, json);
 }
 
 /** `rejected`: stored and acknowledged, but deliberately not applied (see onPaymentCaptured). */
@@ -151,7 +178,7 @@ export async function handleWebhook(
     deps.log?.warn('Rejected webhook with an invalid signature');
     throw new AppError('BAD_SIGNATURE', 'Invalid webhook signature');
   }
-  const event = JSON.parse(input.rawBody) as RazorpayEvent;
+  const event = parseEvent(input.rawBody);
   // Razorpay sends a unique id per event in a header; fall back to a hash of the body.
   const eventId =
     input.eventId ?? `sha256:${createHash('sha256').update(input.rawBody).digest('hex')}`;

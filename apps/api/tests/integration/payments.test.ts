@@ -261,6 +261,25 @@ describe('POST /webhooks/razorpay', () => {
     expect(res.statusCode).toBe(400);
   });
 
+  it('a correctly signed body that is not a valid event is a 400, not a server error', async () => {
+    for (const raw of [
+      '{not json',
+      '{"event": 42}',
+      '{"event":"payment.captured","payload":{"payment":{"entity":{"amount":"lots"}}}}',
+    ]) {
+      const res = await t.app.inject({
+        method: 'POST',
+        url: '/webhooks/razorpay',
+        headers: {
+          'content-type': 'application/json',
+          'x-razorpay-signature': createHmac('sha256', SECRET).update(raw).digest('hex'),
+        },
+        payload: raw,
+      });
+      expect(res.statusCode, raw).toBe(400);
+    }
+  });
+
   it('payment.failed keeps the hold so the customer can retry, then success confirms', async () => {
     const c = await freshCustomer();
     const { bookingId, orderId, amount } = await holdAndOrder(c, T, 2, 9);
