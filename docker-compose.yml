@@ -117,7 +117,7 @@ services:
 
   grafana:
     profiles: [observability]
-    image: grafana/grafana:12.4.15
+    image: grafana/grafana:13.3.1
     # No default admin/admin password: a random one is generated on every start
     # and never printed. Nobody logs in; the dashboard is shown read-only.
     entrypoint:
