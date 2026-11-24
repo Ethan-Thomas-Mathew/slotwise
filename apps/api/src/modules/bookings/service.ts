@@ -6,7 +6,6 @@ import type { TenantTx } from '../../db/tenant-tx';
 import type { Jobs } from '../../jobs/types';
 import type { Effects } from '../../lib/effects';
 import { AppError, notFound } from '../../lib/errors';
-import { iso, isoOrNull } from '../../lib/validate';
 import { writeAudit } from '../audit/repo';
 import { findSlots, findSlotsAnyStaff } from '../availability/service';
 import { localDateOf } from '../availability/slots';
@@ -114,9 +113,9 @@ export async function toBookingDtos(
     return {
       id: b.id,
       status: b.status,
-      startAt: iso(b.start_at),
-      endAt: iso(b.end_at),
-      holdExpiresAt: b.status === 'HELD' ? isoOrNull(b.hold_expires_at) : null,
+      startAt: b.start_at.toISOString(),
+      endAt: b.end_at.toISOString(),
+      holdExpiresAt: b.status === 'HELD' ? (b.hold_expires_at?.toISOString() ?? null) : null,
       pricePaise: b.price_paise,
       service: { id: b.service_id, name: b.service_name },
       staff: { membershipId: b.staff_membership_id, name: b.staff_name },
@@ -372,8 +371,8 @@ export async function rescheduleBooking(
     action: 'booking.reschedule',
     entity: 'booking',
     entityId: bookingId,
-    before: { startAt: iso(booking.start_at), staffId: booking.staff_membership_id },
-    after: { startAt: iso(slot.startAt), staffId, by: actor.role },
+    before: { startAt: booking.start_at.toISOString(), staffId: booking.staff_membership_id },
+    after: { startAt: slot.startAt.toISOString(), staffId, by: actor.role },
   });
   return moved!;
 }

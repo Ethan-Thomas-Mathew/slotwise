@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { AuditLogDto, AuditLogQuery } from '@slotwise/shared';
 import { z } from 'zod';
 import type { AppDeps } from '../../app';
-import { iso, parse, respond } from '../../lib/validate';
+import { parse, respond } from '../../lib/validate';
 import { inTenant, requireRole } from '../../plugins/auth';
 import { listAudit } from './repo';
 
@@ -26,7 +26,7 @@ export async function auditRoutes(app: FastifyInstance, { db }: AppDeps) {
         actor: r.actor_name ? { name: r.actor_name, email: r.actor_email! } : null,
         before: r.before,
         after: r.after,
-        createdAt: iso(r.created_at),
+        createdAt: r.created_at.toISOString(),
       })),
     });
   });

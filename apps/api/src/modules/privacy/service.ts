@@ -17,8 +17,6 @@ import { lockCustomerHolds } from '../bookings/repo';
  * in the database says who the person was.
  */
 
-const iso = (d: Date) => d.toISOString();
-
 export async function exportMyData(db: Database, userId: string): Promise<DataExport> {
   const { user, memberships } = await withSystem(
     db,
@@ -89,11 +87,11 @@ export async function exportMyData(db: Database, userId: string): Promise<DataEx
         business: m.tenantName,
         service: r.service,
         staff: r.staff,
-        startAt: iso(r.start_at),
-        endAt: iso(r.end_at),
+        startAt: r.start_at.toISOString(),
+        endAt: r.end_at.toISOString(),
         status: r.status,
         pricePaise: r.price_paise,
-        createdAt: iso(r.created_at),
+        createdAt: r.created_at.toISOString(),
         payments: (r.payments ?? []).map((p) => ({
           amountPaise: p.amountPaise,
           currency: p.currency,
@@ -106,12 +104,17 @@ export async function exportMyData(db: Database, userId: string): Promise<DataEx
 
   return {
     exportedAt: new Date().toISOString(),
-    user: { id: user.id, name: user.name, email: user.email, createdAt: iso(user.created_at) },
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      createdAt: user.created_at.toISOString(),
+    },
     memberships: memberships.map((m) => ({
       business: m.tenantName,
       bookingLink: `/b/${m.tenantSlug}`,
       role: m.role,
-      joinedAt: iso(m.created_at),
+      joinedAt: m.created_at.toISOString(),
     })),
     bookings,
   };

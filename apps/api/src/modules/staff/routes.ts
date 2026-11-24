@@ -16,7 +16,7 @@ import { PG, pgErrorCode } from '../../db/pg-errors';
 import type { TenantTx } from '../../db/tenant-tx';
 import { AppError, notFound } from '../../lib/errors';
 import { idParam } from '../../lib/params';
-import { iso, parse, respond } from '../../lib/validate';
+import { parse, respond } from '../../lib/validate';
 import { inTenant, requireRole, tenantContext } from '../../plugins/auth';
 import { writeAudit } from '../audit/repo';
 import * as availability from '../availability/repo';
@@ -157,8 +157,8 @@ export async function staffRoutes(app: FastifyInstance, { db }: AppDeps) {
     return respond(TimeOffListResponse, {
       timeOff: rows.map((r) => ({
         id: r.id,
-        startAt: iso(r.start_at),
-        endAt: iso(r.end_at),
+        startAt: r.start_at.toISOString(),
+        endAt: r.end_at.toISOString(),
         reason: r.reason,
       })),
     });
@@ -185,8 +185,8 @@ export async function staffRoutes(app: FastifyInstance, { db }: AppDeps) {
     reply.status(201);
     return respond(TimeOffDto, {
       id: row.id,
-      startAt: iso(row.start_at),
-      endAt: iso(row.end_at),
+      startAt: row.start_at.toISOString(),
+      endAt: row.end_at.toISOString(),
       reason: row.reason,
     });
   });
@@ -201,8 +201,8 @@ export async function staffRoutes(app: FastifyInstance, { db }: AppDeps) {
         entity: 'time_off',
         entityId: id,
         before: {
-          startAt: iso(removed.start_at),
-          endAt: iso(removed.end_at),
+          startAt: removed.start_at.toISOString(),
+          endAt: removed.end_at.toISOString(),
           reason: removed.reason,
         },
       });

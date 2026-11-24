@@ -5,7 +5,7 @@ import type { AppDeps } from '../../app';
 import { notFound } from '../../lib/errors';
 import { runEffects, type Effects } from '../../lib/effects';
 import { idParam } from '../../lib/params';
-import { iso, isoOrNull, parse, respond } from '../../lib/validate';
+import { parse, respond } from '../../lib/validate';
 import { inTenant, requireRole } from '../../plugins/auth';
 import { writeAudit } from '../audit/repo';
 import { listNotifications, retryNotification } from './repo';
@@ -28,8 +28,8 @@ export async function notificationRoutes(app: FastifyInstance, { db, jobs }: App
         status: n.status,
         attempts: n.attempts,
         lastError: n.last_error,
-        scheduledFor: iso(n.scheduled_for),
-        sentAt: isoOrNull(n.sent_at),
+        scheduledFor: n.scheduled_for.toISOString(),
+        sentAt: n.sent_at?.toISOString() ?? null,
       })),
     });
   });

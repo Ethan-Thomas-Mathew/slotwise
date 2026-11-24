@@ -21,5 +21,4 @@ export function respond<T extends z.ZodType>(schema: T, data: z.input<T>): z.out
   }
 }
 
-export const iso = (d: Date) => d.toISOString();
 export const isoOrNull = (d: Date | null) => (d ? d.toISOString() : null);

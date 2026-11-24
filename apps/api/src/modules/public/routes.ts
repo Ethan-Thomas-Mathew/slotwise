@@ -10,7 +10,7 @@ import {
 import type { AppDeps } from '../../app';
 import { withTenant } from '../../db/tenant-tx';
 import { notFound } from '../../lib/errors';
-import { iso, parse, respond } from '../../lib/validate';
+import { parse, respond } from '../../lib/validate';
 import {
   findOpenDays,
   findOpenDaysAnyStaff,
@@ -70,7 +70,10 @@ export async function publicRoutes(app: FastifyInstance, { db }: AppDeps) {
     return respond(SlotsResponse, {
       date: q.date,
       timezone: result.timezone,
-      slots: result.slots.map((s) => ({ startAt: iso(s.startAt), endAt: iso(s.endAt) })),
+      slots: result.slots.map((s) => ({
+        startAt: s.startAt.toISOString(),
+        endAt: s.endAt.toISOString(),
+      })),
     });
   });
 
