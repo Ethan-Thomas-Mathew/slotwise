@@ -121,12 +121,8 @@ docker compose --profile full up --build
 **For development (hot reload):**
 
 ```bash
-pnpm i
-docker compose up -d                  # Postgres, Redis, Mailpit
-cp .env.example apps/api/.env
-pnpm db:migrate && pnpm db:seed
-pnpm dev                              # API on :3000, web on :5173
-pnpm --filter @slotwise/api worker    # background jobs (second terminal)
+pnpm bootstrap   # install, start Postgres/Redis/Mailpit, create apps/api/.env, migrate, seed
+pnpm dev         # API on :3000, worker, web on :5173 (http://localhost:5173)
 ```
 
 **Tests:**

@@ -6,12 +6,13 @@ How work gets into Slotwise. Short version: **branch → small commits → pull 
 ## Setup
 
 ```bash
-pnpm install          # also installs the git pre-commit hook
-docker compose up -d  # Postgres, Redis, Mailpit (all on 127.0.0.1 only)
-cp .env.example apps/api/.env
-pnpm db:migrate && pnpm db:seed
-pnpm dev              # API on :3000, web on :5173
+pnpm bootstrap   # install (also installs the git pre-commit hook), start Postgres,
+                 # Redis and Mailpit on 127.0.0.1, create apps/api/.env, migrate, seed
+pnpm dev         # API on :3000, worker, web on :5173
 ```
+
+The pre-commit hook needs pnpm on your machine. If you only use Docker, it isn't
+installed and nothing checks your commits locally; CI still runs every check.
 
 ## Workflow
 
