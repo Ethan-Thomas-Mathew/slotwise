@@ -70,22 +70,22 @@ More diagrams (request lifecycle, payment sequence, booking states) are in [`doc
 
 ## Tech stack
 
-| Layer         | Choice                                                                             | Why                                                                       |
-| ------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Language      | TypeScript (strict) everywhere                                                     | One language, compile-time safety across API, UI and shared schemas       |
-| Monorepo      | pnpm workspaces                                                                    | Shared Zod schemas change in the same commit as their users               |
-| API           | Fastify                                                                            | Fast, plugin-based, `inject()` makes HTTP tests quick                     |
-| Validation    | Zod (shared package)                                                               | Same rules in the browser and on the server                               |
-| Database      | PostgreSQL 16                                                                      | RLS, exclusion constraints, savepoints, advisory locks                    |
-| Query builder | Kysely + SQL migrations                                                            | Type-checked queries with the SQL still visible ([D3](docs/DECISIONS.md)) |
-| Auth          | DB sessions, Argon2id (`@node-rs/argon2`)                                          | Revocable sessions, explainable code ([D10](docs/DECISIONS.md))           |
-| Jobs          | BullMQ + Redis                                                                     | Delayed jobs, retries with backoff, job schedulers                        |
-| Payments      | Razorpay (+ a mock that drives the real webhook)                                   | Indian payments; runnable without keys                                    |
-| Email         | Nodemailer → Mailpit (dev) / any SMTP (prod)                                       | Provider-agnostic                                                         |
-| Frontend      | React, Vite, TanStack Query, React Router, Tailwind, React Hook Form               | Cached server state, typed forms, fast dev loop                           |
-| Observability | pino (JSON logs + request ids), Prometheus + Grafana, Sentry, `/health` + `/ready` | Debuggable in production; alerts with a runbook                           |
-| Tests         | Vitest, Testing Library, Playwright + axe                                          | Unit → integration → browser + accessibility                              |
-| Delivery      | Docker, docker compose, GitHub Actions                                             | One-command local run, CI on every push                                   |
+| Layer         | Choice                                                                     | Why                                                                       |
+| ------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Language      | TypeScript (strict) everywhere                                             | One language, compile-time safety across API, UI and shared schemas       |
+| Monorepo      | pnpm workspaces                                                            | Shared Zod schemas change in the same commit as their users               |
+| API           | Fastify                                                                    | Fast, plugin-based, `inject()` makes HTTP tests quick                     |
+| Validation    | Zod (shared package)                                                       | Same rules in the browser and on the server                               |
+| Database      | PostgreSQL 16                                                              | RLS, exclusion constraints, savepoints, advisory locks                    |
+| Query builder | Kysely + SQL migrations                                                    | Type-checked queries with the SQL still visible ([D3](docs/DECISIONS.md)) |
+| Auth          | DB sessions, Argon2id (`@node-rs/argon2`)                                  | Revocable sessions, explainable code ([D10](docs/DECISIONS.md))           |
+| Jobs          | BullMQ + Redis                                                             | Delayed jobs, retries with backoff, job schedulers                        |
+| Payments      | Razorpay (+ a mock that drives the real webhook)                           | Indian payments; runnable without keys                                    |
+| Email         | Nodemailer → Mailpit (dev) / any SMTP (prod)                               | Provider-agnostic                                                         |
+| Frontend      | React, Vite, TanStack Query, React Router, Tailwind, React Hook Form       | Cached server state, typed forms, fast dev loop                           |
+| Observability | pino (JSON logs + request ids), Prometheus + Grafana, `/health` + `/ready` | Debuggable in production; alerts with a runbook                           |
+| Tests         | Vitest, Testing Library, Playwright + axe                                  | Unit → integration → browser + accessibility                              |
+| Delivery      | Docker, docker compose, GitHub Actions                                     | One-command local run, CI on every push                                   |
 
 ---
 

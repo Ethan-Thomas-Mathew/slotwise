@@ -100,7 +100,7 @@ A self-review of Slotwise against the [OWASP Top 10:2025](https://owasp.org/Top1
 **What Slotwise does:**
 
 - Structured JSON logs (pino) with a **request id** on every line, returned as the `x-request-id` header. Cookies, auth and CSRF headers are redacted.
-- Rejected webhook signatures are logged as warnings. Unexpected errors are logged and sent to **Sentry** (API, worker and browser) when `SENTRY_DSN` is set.
+- Rejected webhook signatures are logged as warnings. Unexpected errors are logged at error level with the request id and stack trace.
 - An **audit log** records who changed what (before/after) for every owner action, cancellation and payment decision, viewable by the owner.
 - Failed customer emails become visible to the owner after all retries.
 - **Alerting:** Prometheus alert rules (unit-tested) fire on API/worker down, error rate, latency, failing jobs, queue backlog and bursts of invalid webhook signatures; each links to a runbook section (`docs/RUNBOOK.md`).

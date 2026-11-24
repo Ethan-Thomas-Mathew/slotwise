@@ -15,7 +15,6 @@ RUN pnpm install --frozen-lockfile
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY apps/web apps/web
-ARG VITE_SENTRY_DSN=
 RUN pnpm --filter @slotwise/web build
 
 FROM nginx:1.27-alpine

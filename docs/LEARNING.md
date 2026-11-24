@@ -255,14 +255,14 @@ Customer clicks Pay
 
 ## Phase 8: Hardening and shipping
 
-**What was built:** security headers and CORS, Sentry hooks, request-id logging, an OWASP Top 10:2025 review (`docs/SECURITY.md`), Playwright end-to-end tests with accessibility checks, Dockerfiles, a one-command Docker setup, CI jobs for E2E and image builds, Dependabot, a dependency audit, and the README/architecture/deploy docs.
+**What was built:** security headers and CORS, request-id logging, an OWASP Top 10:2025 review (`docs/SECURITY.md`), Playwright end-to-end tests with accessibility checks, Dockerfiles, a one-command Docker setup, CI jobs for E2E and image builds, Dependabot, a dependency audit, and the README/architecture/deploy docs.
 
 **Key ideas:**
 
 - **Defence in depth:** several independent protections, so one mistake doesn't become a breach (RLS + app filters; SameSite + CSRF token + Origin check).
 - **Security headers:** instructions to the browser, e.g. CSP ("only run scripts from these places") and `X-Content-Type-Options: nosniff`.
 - **CORS:** the browser rule that stops other websites from reading your API's responses. We allow only our own frontend.
-- **Structured logging + request ids:** every log line is JSON and carries the request's id, so one failing request can be traced through the logs (and Sentry).
+- **Structured logging + request ids:** every log line is JSON and carries the request's id, so one failing request can be traced through the logs.
 - **Health vs readiness:** `/health` = the process is alive; `/ready` = it can reach Postgres and Redis. Load balancers use these.
 - **E2E tests:** a real browser clicking through the app like a user. Slower, so only for the critical paths.
 - **Docker multi-stage builds:** compile in one stage, copy only the result and production dependencies into a small final image that runs as a non-root user.

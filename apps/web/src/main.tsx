@@ -52,17 +52,6 @@ const EmailsPage = lazy(() =>
 );
 import { useMe } from './lib/auth';
 
-// Error tracking is loaded only if configured.
-if (import.meta.env.VITE_SENTRY_DSN) {
-  void import('@sentry/react').then((Sentry) =>
-    Sentry.init({
-      dsn: import.meta.env.VITE_SENTRY_DSN,
-      environment: import.meta.env.MODE,
-      sendDefaultPii: false,
-    }),
-  );
-}
-
 const owner = (el: React.ReactNode) => <RoleGate roles={['OWNER']}>{el}</RoleGate>;
 
 /** /app/bookings is "my bookings" for customers and "all bookings" for owners. */

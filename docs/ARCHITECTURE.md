@@ -105,7 +105,7 @@ apps/api/src/
   plugins/          auth (sessions, CSRF, role guards), error handler
   modules/<area>/   repo.ts (data access) · service.ts (rules) · routes.ts (HTTP)
   jobs/             queue definitions, BullMQ implementation, workers
-  lib/              errors, validation, tokens, passwords, mailer, sentry, metrics
+  lib/              errors, validation, tokens, passwords, mailer, metrics
   openapi/          the API description (OpenAPI 3.1) built from the route schemas
 apps/api/scripts/ops/  backup and restore drill
 apps/api/tests/

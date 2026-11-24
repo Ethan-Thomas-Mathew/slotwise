@@ -11,12 +11,10 @@ import { createQueues } from './jobs/queues';
 import { startWorkers } from './jobs/workers';
 import { createMailer } from './lib/mailer';
 import { startMetricsServer, trackQueueDepth } from './lib/metrics';
-import { initSentry } from './lib/sentry';
 import { createPaymentProvider } from './modules/payments/provider';
 
 const config = loadConfig();
 const log = pino({ level: config.LOG_LEVEL, name: 'worker' });
-initSentry(config, 'worker');
 
 const db = createDatabase(config.DATABASE_URL, runtimePoolOptions(config));
 const connection = new Redis(config.REDIS_URL, { maxRetriesPerRequest: null });

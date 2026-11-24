@@ -14,7 +14,6 @@
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@fontsource-variable/onest": "^5.3.1",
     "@hookform/resolvers": "^5.9.2",
-    "@sentry/react": "^10.78.0",
     "@slotwise/shared": "workspace:*",
     "@tanstack/react-query": "^5.108.3",
     "luxon": "^3.7.2",

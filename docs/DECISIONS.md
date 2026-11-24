@@ -252,7 +252,7 @@ Each entry: **Decision → Alternatives considered → Why this one → Trade-of
 
 ## D41. Code splitting: customers don't download the dashboards
 
-- **Decision:** Dashboard pages load with `React.lazy` when first opened. Libraries go into separate `react`, `data` and `luxon` files, and Sentry loads only if it's configured.
+- **Decision:** Dashboard pages load with `React.lazy` when first opened. Libraries go into separate `react`, `data` and `luxon` files.
 - **Why:** The booking page is opened by customers, often on phones and mobile data. Our own code is now a ~15 KB (gzipped) file; the library files stay cached in the browser across our deploys because they rarely change.
 - **Trade-off:** A short loading state the first time an owner opens each dashboard page.
 

@@ -54,7 +54,6 @@ const EnvSchema = z.object({
   /** Serve interactive API docs at /docs. Default: on unless NODE_ENV=production. */
   API_DOCS: z.enum(['true', 'false']).optional(),
 
-  SENTRY_DSN: z.string().optional(),
   /** Demo deployments only: allow the mock payment provider in production. */
   ALLOW_MOCK_PAYMENTS: z.enum(['true', 'false']).default('false'),
 });
@@ -62,7 +61,7 @@ const EnvSchema = z.object({
 export type Config = z.infer<typeof EnvSchema>;
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  // Treat empty strings ("SENTRY_DSN=") as "not set".
+  // Treat empty strings ("RAZORPAY_KEY_ID=") as "not set".
   const cleaned = Object.fromEntries(Object.entries(env).filter(([, v]) => v !== ''));
   const parsed = EnvSchema.safeParse(cleaned);
   if (!parsed.success) {
