@@ -17,7 +17,10 @@ COPY packages/shared packages/shared
 COPY apps/web apps/web
 RUN pnpm --filter @slotwise/web build
 
-FROM nginx:1.27-alpine
+# nginx's stable branch (1.27 no longer receives fixes). apk upgrade picks up Alpine
+# security fixes published since the base image was built.
+FROM nginx:1.30-alpine
+RUN apk upgrade --no-cache
 ENV API_URL=http://api:3000
 COPY apps/web/nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY apps/web/nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
