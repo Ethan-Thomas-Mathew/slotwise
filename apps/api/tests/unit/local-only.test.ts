@@ -36,6 +36,13 @@ describe('docker-compose.yml stays local-only', () => {
     for (const p of ports) expect(p).not.toMatch(/:946[45]$/);
   });
 
+  it('pins every image to a version (no "latest" or untagged images)', () => {
+    const images = [...compose.matchAll(/^\s+image:\s*(\S+)/gm)].map((m) => m[1]!);
+    expect(images.length).toBeGreaterThan(3);
+    for (const image of images) expect(image, image).toMatch(/:[\w.-]*\d[\w.-]*$/);
+    for (const image of images) expect(image).not.toMatch(/:latest$/);
+  });
+
   it('has no fixed Grafana admin password', () => {
     expect(compose).not.toMatch(/GF_SECURITY_ADMIN_PASSWORD:/);
     expect(compose).toContain('GF_AUTH_DISABLE_LOGIN_FORM');
