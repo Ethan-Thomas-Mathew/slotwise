@@ -16,6 +16,7 @@
     "typecheck": "pnpm -r typecheck && tsc -p e2e/tsconfig.json",
     "test": "pnpm -r test",
     "test:e2e": "playwright test",
+    "bench": "pnpm --filter @slotwise/api bench",
     "db:migrate": "pnpm --filter @slotwise/api db:migrate",
     "db:seed": "pnpm --filter @slotwise/api db:seed",
     "test:coverage": "pnpm -r --filter '!@slotwise/api' test && pnpm --filter @slotwise/api test:coverage",

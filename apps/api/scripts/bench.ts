@@ -1,5 +1,7 @@
 /**
- * Load test for the booking path.  Run:  pnpm --filter @slotwise/api bench
+ * Load test for the booking path.
+ *   pnpm bench                                     (20 connections)
+ *   pnpm bench -- --concurrency 50 --holds 600 --reads 2000
  *
  * Starts the real API on a random port (real Postgres, real Redis/BullMQ),
  * creates a throwaway business, then fires many concurrent HTTP requests and
@@ -10,8 +12,15 @@
  *   3. POST /bookings/hold, 10 staff   (writes spread across calendars)
  *
  * Comparing 2 and 3 shows what the per-staff advisory lock costs.
+ *
+ * It prints the machine it ran on and the process's peak memory, so results can
+ * be compared and checked. The load generator runs in the same Node process as
+ * the API, so the API gets less CPU than it would alone: treat results as a floor.
  */
 import { randomUUID } from 'node:crypto';
+import os from 'node:os';
+import { parseArgs } from 'node:util';
+import { sql } from 'kysely';
 import { Redis } from 'ioredis';
 import { DateTime } from 'luxon';
 import { buildApp } from '../src/app';
@@ -30,9 +39,18 @@ import { setStaffServices } from '../src/modules/staff/repo';
 import { insertTenant } from '../src/modules/tenants/repo';
 import { insertUser } from '../src/modules/users/repo';
 
-const CONCURRENCY = Number(process.env.BENCH_CONCURRENCY ?? 20);
-const HOLDS = Number(process.env.BENCH_HOLDS ?? 600);
-const READS = Number(process.env.BENCH_READS ?? 2000);
+// Command-line options rather than environment variables, so the same command
+// works in PowerShell, cmd and bash.
+const { values: args } = parseArgs({
+  options: {
+    concurrency: { type: 'string', default: '20' },
+    holds: { type: 'string', default: '600' },
+    reads: { type: 'string', default: '2000' },
+  },
+});
+const CONCURRENCY = Number(args.concurrency);
+const HOLDS = Number(args.holds);
+const READS = Number(args.reads);
 const STAFF = 10;
 
 const config = loadConfig({ ...process.env, LOG_LEVEL: 'silent', NODE_ENV: 'development' });
@@ -174,6 +192,12 @@ const hold = (clientIndex: number, staffId: string, startAt: string) => {
   });
 };
 
+// Peak memory of this process while the scenarios run.
+let peakRss = 0;
+const sampler = setInterval(() => {
+  peakRss = Math.max(peakRss, process.memoryUsage().rss);
+}, 100);
+
 // Warm up connections and caches.
 await run('warm-up', 50, () => fetch(`${address}/health`));
 
@@ -204,22 +228,35 @@ results.push(
   ),
 );
 
-console.log(
-  `\nSlotwise load test: ${CONCURRENCY} concurrent connections, API + Postgres + Redis on one machine\n`,
-);
-console.table(
-  results.map((r) => ({
-    scenario: r.name,
-    requests: r.requests,
-    'req/s': r.rps,
-    'p50 ms': r.p50,
-    'p95 ms': r.p95,
-    'p99 ms': r.p99,
-    statuses: Object.entries(r.statuses)
-      .map(([s, n]) => `${s}×${n}`)
-      .join(' '),
-  })),
-);
+clearInterval(sampler);
+
+const { rows: pgRows } = await sql<{
+  v: string;
+}>`SELECT current_setting('server_version') AS v`.execute(db);
+const redisVersion = /redis_version:(\S+)/.exec(await redis.info('server'))?.[1] ?? 'unknown';
+const cpus = os.cpus();
+const mb = (bytes: number) => Math.round(bytes / 1024 / 1024);
+
+console.log(`
+Machine:  ${cpus[0]?.model.trim() ?? 'unknown CPU'}, ${cpus.length} logical CPUs, ${mb(os.totalmem())} MB RAM
+System:   ${os.type()} ${os.release()} (${os.arch()}), Node ${process.version}, Postgres ${pgRows[0]?.v}, Redis ${redisVersion}
+Load:     ${CONCURRENCY} concurrent connections; API, Postgres and Redis on this machine
+Memory:   peak ${mb(peakRss)} MB resident (API and load generator share one process)
+Date:     ${new Date().toISOString().slice(0, 10)}
+
+| Scenario | Requests | Throughput | p50 | p95 | p99 | Responses |
+| --- | --- | --- | --- | --- | --- | --- |
+${results
+  .map(
+    (r) =>
+      `| ${r.name} | ${r.requests} | ${r.rps} req/s | ${r.p50} ms | ${r.p95} ms | ${r.p99} ms | ${Object.entries(
+        r.statuses,
+      )
+        .map(([s, n]) => `${n} x ${s}`)
+        .join(', ')} |`,
+  )
+  .join('\n')}
+`);
 
 // ---------- clean up ----------
 await app.close();
