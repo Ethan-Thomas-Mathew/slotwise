@@ -180,6 +180,14 @@ export async function holdSlot(
 
   // 2. Stop one customer from holding every slot at once.
   await repo.lockCustomerHolds(tx, actor.membershipId);
+  // Account erasure takes the same lock. Re-check here, after it, so a request
+  // that passed its session check just before an erasure can't book afterwards.
+  const user = await tx.db
+    .selectFrom('users')
+    .select('deleted_at')
+    .where('id', '=', actor.userId)
+    .executeTakeFirst();
+  if (!user || user.deleted_at) throw new AppError('UNAUTHENTICATED', 'Please log in again');
   const active = await tx.db
     .selectFrom('bookings')
     .select(sql<number>`count(*)`.as('n'))

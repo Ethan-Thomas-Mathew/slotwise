@@ -5,6 +5,7 @@ import { withSystem, withTenant, type TenantTx } from '../../db/tenant-tx';
 import { AppError } from '../../lib/errors';
 import { verifyPassword } from '../../lib/passwords';
 import { writeAudit } from '../audit/repo';
+import { lockCustomerHolds } from '../bookings/repo';
 
 /**
  * Privacy rights (India's DPDP Act 2023, similar to GDPR):
@@ -171,6 +172,8 @@ export async function deleteMyAccount(
 
     for (const m of memberships) {
       const tx = await useTenant(trx, m.tenant_id, userId);
+      // Waits for any hold in progress for this customer, so it is counted below.
+      await lockCustomerHolds(tx, m.id);
       const upcoming = await tx.db
         .selectFrom('bookings')
         .select('id')

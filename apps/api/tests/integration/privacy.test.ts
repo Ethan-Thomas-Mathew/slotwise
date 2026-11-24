@@ -3,7 +3,14 @@ import { withSystem, withTenant } from '../../src/db/tenant-tx';
 import { insertMembership } from '../../src/modules/memberships/repo';
 import { writeAudit } from '../../src/modules/audit/repo';
 import { Client, createTestApp, loginAs, type TestApp } from '../helpers/app';
-import { addCustomers, confirmDirect, insertBookingDirect } from '../helpers/booking';
+import {
+  addCustomers,
+  confirmDirect,
+  dateIn,
+  insertBookingDirect,
+  slotsFor,
+} from '../helpers/booking';
+import { holdSlot } from '../../src/modules/bookings/service';
 import { createTestTenant, TEST_PASSWORD, type TestTenant } from '../helpers/factory';
 
 let t: TestApp;
@@ -145,5 +152,44 @@ describe('delete my account', () => {
       tx.db.selectFrom('users').select('email').where('email', '=', cust!.email).execute(),
     );
     expect(users).toEqual([]);
+  });
+
+  it('a hold request already in flight when the account is erased cannot create a booking', async () => {
+    const [cust] = await addCustomers(t.db, A, 1);
+    const { user_id: userId } = await withTenant(t.db, A.tenantId, (tx) =>
+      tx.db
+        .selectFrom('memberships')
+        .select('user_id')
+        .where('id', '=', cust!.membershipId)
+        .executeTakeFirstOrThrow(),
+    );
+    const actor = { userId, membershipId: cust!.membershipId, role: 'CUSTOMER' as const };
+    const [startAt] = await slotsFor(t.app, A, dateIn(7));
+    const tryHold = () =>
+      withTenant(t.db, A.tenantId, (tx) =>
+        holdSlot(
+          tx,
+          actor,
+          { serviceId: A.service.id, staffId: A.staff.membershipId, startAt: startAt! },
+          [],
+          { jobs: t.jobs },
+        ),
+      );
+    // Sanity check: this actor can hold a slot before the erasure (then cancel it).
+    const before = await tryHold();
+    await withTenant(t.db, A.tenantId, (tx) =>
+      tx.db
+        .updateTable('bookings')
+        .set({ status: 'CANCELLED' })
+        .where('id', '=', before.id)
+        .execute(),
+    );
+
+    const c = await loginAs(t.app, cust!.email, A.slug);
+    expect((await c.post('/account/delete', DELETE_BODY)).statusCode).toBe(200);
+
+    // The request passed its session check just before the erasure committed.
+    const attempt = tryHold();
+    await expect(attempt).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
   });
 });
