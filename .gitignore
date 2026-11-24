@@ -11,3 +11,5 @@ test-results/
 
 # Database backups contain personal data: never commit them.
 backups/
+# Redis snapshot, if redis-server is started from this folder
+dump.rdb
