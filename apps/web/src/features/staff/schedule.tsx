@@ -2,10 +2,10 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import type { BookingDto } from '@slotwise/shared';
 import { DateTime } from 'luxon';
 import { useState } from 'react';
-import type { ApiError } from '../../lib/api';
-import { get, post } from '../../lib/api';
-import { useMe } from '../../lib/auth';
-import { fmtDayLong, fmtTime } from '../../lib/time';
+import type { ApiError } from '../../api/client';
+import { get, post } from '../../api/client';
+import { useMe } from '../../api/session';
+import { fmtDayLong, fmtTime } from '../../time/format';
 import {
   Alert,
   Button,
@@ -19,7 +19,7 @@ import {
 } from '../../components/ui';
 import { useToast } from '../../components/toast';
 import { useInvalidateBookings } from '../booking/booking-actions';
-import { useNow } from '../../lib/use-now';
+import { useNow } from '../../time/use-now';
 
 /** Staff: their own appointments for a day or a week, with "completed" / "no-show" buttons. */
 export function SchedulePage() {

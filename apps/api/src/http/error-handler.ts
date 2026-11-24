@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyError } from 'fastify';
 import { ZodError } from 'zod';
-import { AppError } from '../lib/errors';
-import { appErrors } from '../lib/metrics';
+import { AppError } from './errors';
+import { appErrors } from '../metrics';
 
 /** Converts every thrown error into the one consistent error shape. */
 export function registerErrorHandler(app: FastifyInstance) {

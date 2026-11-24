@@ -9,8 +9,8 @@ import { createDatabase, runtimePoolOptions } from './db/database';
 import { BullJobs } from './jobs/bull-jobs';
 import { createQueues } from './jobs/queues';
 import { startWorkers } from './jobs/workers';
-import { createMailer } from './lib/mailer';
-import { startMetricsServer, trackQueueDepth } from './lib/metrics';
+import { createMailer } from './mail/mailer';
+import { startMetricsServer, trackQueueDepth } from './metrics';
 import { createPaymentProvider } from './modules/payments/provider';
 
 const config = loadConfig();

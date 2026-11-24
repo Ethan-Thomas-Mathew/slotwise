@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { sql } from 'kysely';
 import { DateTime } from 'luxon';
-import { appDb } from '../helpers/db';
-import { createTestTenant, type TestTenant } from '../helpers/factory';
+import { appDb } from '../support/db';
+import { createTestTenant, type TestTenant } from '../support/factory';
 import { withSystem, withTenant } from '../../src/db/tenant-tx';
 import * as services from '../../src/modules/services/repo';
 import * as bookings from '../../src/modules/bookings/repo';

@@ -1,8 +1,8 @@
 import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { registry, startMetricsServer, trackQueueDepth } from '../../src/lib/metrics';
-import { createTestApp, type TestApp } from '../helpers/app';
+import { registry, startMetricsServer, trackQueueDepth } from '../../src/metrics';
+import { createTestApp, type TestApp } from '../support/app';
 
 let t: TestApp;
 let server: Server;

@@ -9,8 +9,8 @@ import {
 } from '@slotwise/shared';
 import type { AppDeps } from '../../app';
 import { withTenant } from '../../db/tenant-tx';
-import { notFound } from '../../lib/errors';
-import { parse, respond } from '../../lib/validate';
+import { notFound } from '../../http/errors';
+import { parse, respond } from '../../http/validation';
 import {
   findOpenDays,
   findOpenDaysAnyStaff,

@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { formatPaise, type BookingDto, type DashboardSummary } from '@slotwise/shared';
 import { DateTime } from 'luxon';
 import { Link } from 'react-router';
-import { get } from '../../lib/api';
-import { useMe } from '../../lib/auth';
-import { fmtTime } from '../../lib/time';
+import { get } from '../../api/client';
+import { useMe } from '../../api/session';
+import { fmtTime } from '../../time/format';
 import {
   Alert,
   EmptyState,

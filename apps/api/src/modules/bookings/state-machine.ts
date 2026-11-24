@@ -1,5 +1,5 @@
 import type { BookingStatus } from '../../db/schema';
-import { AppError } from '../../lib/errors';
+import { AppError } from '../../http/errors';
 
 /**
  * The booking lifecycle. Every status change in the app goes through

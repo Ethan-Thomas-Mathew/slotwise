@@ -2,7 +2,7 @@ import { formatPaise, HOLD_MINUTES } from '@slotwise/shared';
 import { DateTime } from 'luxon';
 import type { NotificationType } from '../../db/schema';
 import type { OutgoingEmail } from '../../jobs/types';
-import { escapeHtml } from '../../lib/html';
+import { escapeHtml } from '../../mail/html';
 
 interface BookingEmailData {
   businessName: string;

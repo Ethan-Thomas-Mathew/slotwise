@@ -2,8 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import { AuditLogDto, AuditLogQuery } from '@slotwise/shared';
 import { z } from 'zod';
 import type { AppDeps } from '../../app';
-import { parse, respond } from '../../lib/validate';
-import { inTenant, requireRole } from '../../plugins/auth';
+import { parse, respond } from '../../http/validation';
+import { inTenant, requireRole } from '../../http/auth';
 import { listAudit } from './repo';
 
 export async function auditRoutes(app: FastifyInstance, { db }: AppDeps) {

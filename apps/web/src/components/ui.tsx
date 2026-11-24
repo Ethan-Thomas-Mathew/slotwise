@@ -9,7 +9,7 @@ import {
   type SelectHTMLAttributes,
 } from 'react';
 import { Link, type LinkProps } from 'react-router';
-import { ApiError } from '../lib/api';
+import { ApiError } from '../api/client';
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 

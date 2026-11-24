@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DateTime } from 'luxon';
-import { createTestApp, loginAs, type Client, type TestApp } from '../helpers/app';
-import { createTestTenant, type TestTenant } from '../helpers/factory';
+import { createTestApp, loginAs, type Client, type TestApp } from '../support/app';
+import { createTestTenant, type TestTenant } from '../support/factory';
 
 let t: TestApp;
 let A: TestTenant;

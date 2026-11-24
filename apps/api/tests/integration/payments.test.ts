@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createHmac, randomUUID } from 'node:crypto';
 import { sql } from 'kysely';
-import { createTestApp, loginAs, type Client, type TestApp } from '../helpers/app';
-import { createTestTenant, type TestTenant } from '../helpers/factory';
-import { addCustomers, dateIn, slotsFor } from '../helpers/booking';
+import { createTestApp, loginAs, type Client, type TestApp } from '../support/app';
+import { createTestTenant, type TestTenant } from '../support/factory';
+import { addCustomers, dateIn, slotsFor } from '../support/booking';
 import { withTenant } from '../../src/db/tenant-tx';
 import { mockWebhookBody } from '../../src/modules/payments/routes';
 import { processRefund } from '../../src/modules/payments/service';

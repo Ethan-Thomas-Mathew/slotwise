@@ -5,7 +5,7 @@ import type {
   RegisterRequest,
   SignupOwnerRequest,
 } from '@slotwise/shared';
-import { ApiError, get, post, setCsrfToken } from './api';
+import { ApiError, get, post, setCsrfToken } from './client';
 
 /** The logged-in user (or null). Also stores the CSRF token for later writes. */
 export function useMe() {

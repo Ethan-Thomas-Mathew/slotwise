@@ -155,7 +155,7 @@ Interviewers mostly care whether you **understand and own** the code. Prove it b
 ## Running it in production
 
 **"How would you know if it broke at 2 a.m.?"**
-Prometheus scrapes metrics from the API and the worker; alert rules fire on the API or worker being down, more than 5% server errors, slow requests, failing jobs, a growing queue and bursts of fake webhooks. Each alert links to a runbook section. The rules have unit tests (`ops/prometheus/alerts.test.yml`). → `apps/api/src/lib/metrics.ts`, `ops/prometheus/`, `docs/RUNBOOK.md`
+Prometheus scrapes metrics from the API and the worker; alert rules fire on the API or worker being down, more than 5% server errors, slow requests, failing jobs, a growing queue and bursts of fake webhooks. Each alert links to a runbook section. The rules have unit tests (`ops/prometheus/alerts.test.yml`). → `apps/api/src/metrics.ts`, `ops/prometheus/`, `docs/RUNBOOK.md`
 
 **"Why not label metrics by URL?"**
 Cardinality: every distinct label value is a new time series held in memory, and URLs contain ids, so a scanner requesting random URLs could exhaust memory. We label by route template and put unknown URLs under `unmatched`; a test checks ids never appear in the metrics.

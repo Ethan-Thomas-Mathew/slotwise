@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DateTime } from 'luxon';
-import { createTestApp, loginAs, type TestApp } from '../helpers/app';
-import { createTestTenant, type TestTenant } from '../helpers/factory';
-import { addCustomers, dateIn, insertBookingDirect } from '../helpers/booking';
+import { createTestApp, loginAs, type TestApp } from '../support/app';
+import { createTestTenant, type TestTenant } from '../support/factory';
+import { addCustomers, dateIn, insertBookingDirect } from '../support/booking';
 import { withTenant } from '../../src/db/tenant-tx';
 import { setStaffServices } from '../../src/modules/staff/repo';
 import { replaceRules } from '../../src/modules/availability/repo';

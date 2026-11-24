@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { randomUUID } from 'node:crypto';
-import { Client, createTestApp, loginAs, type TestApp } from '../helpers/app';
-import { createTestTenant, type TestTenant } from '../helpers/factory';
+import { Client, createTestApp, loginAs, type TestApp } from '../support/app';
+import { createTestTenant, type TestTenant } from '../support/factory';
 
 /**
  * Role matrix: for every protected route, which roles get in?

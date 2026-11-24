@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import { Wordmark } from '../components/layout';
 import { LinkButton } from '../components/ui';
-import { useMe } from '../lib/auth';
+import { useMe } from '../api/session';
 
 /** A sample page from the appointment book, drawn with the same styles as the real booking page. */
 const SAMPLE = [

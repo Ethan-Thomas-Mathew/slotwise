@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { countdown, fmtTime, groupByHour, nextDates } from '../src/lib/time';
+import { countdown, fmtTime, groupByHour, nextDates } from '../src/time/format';
 
 describe('time helpers', () => {
   it('formats in the business timezone, not the browser timezone', () => {

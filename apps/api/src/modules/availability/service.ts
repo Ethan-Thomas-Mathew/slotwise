@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
 import type { TenantTx } from '../../db/tenant-tx';
-import { notFound } from '../../lib/errors';
+import { notFound } from '../../http/errors';
 import { listBusyIntervals } from '../bookings/repo';
 import { getService } from '../services/repo';
 import { getStaffMember, listStaffIdsForService, staffOffersService } from '../staff/repo';

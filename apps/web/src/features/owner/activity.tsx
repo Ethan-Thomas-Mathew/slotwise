@@ -1,8 +1,8 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { get } from '../../lib/api';
-import { useMe } from '../../lib/auth';
-import { fmtDateTime } from '../../lib/time';
+import { get } from '../../api/client';
+import { useMe } from '../../api/session';
+import { fmtDateTime } from '../../time/format';
 import {
   Button,
   EmptyState,

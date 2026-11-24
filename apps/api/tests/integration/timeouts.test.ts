@@ -2,7 +2,7 @@ import { sql } from 'kysely';
 import { describe, expect, it } from 'vitest';
 import { loadConfig } from '../../src/config';
 import { createDatabase } from '../../src/db/database';
-import { createTestApp } from '../helpers/app';
+import { createTestApp } from '../support/app';
 
 describe('timeouts', () => {
   it('cancels a query that runs longer than the statement timeout', async () => {

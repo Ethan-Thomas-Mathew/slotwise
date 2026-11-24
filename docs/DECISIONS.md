@@ -218,7 +218,7 @@ Each entry: **Decision → Alternatives considered → Why this one → Trade-of
 
 ## D35. All times shown in the business's timezone
 
-- **Decision:** The frontend formats every time with the tenant's timezone (`lib/time.ts`), never the browser's.
+- **Decision:** The frontend formats every time with the tenant's timezone (`time/format.ts`), never the browser's.
 - **Why:** A customer travelling abroad must still see "10:00" for a 10:00 appointment in Bengaluru.
 
 ## D36. Design system: few tokens, one loud element

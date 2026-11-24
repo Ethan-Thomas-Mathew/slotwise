@@ -14,10 +14,10 @@ import {
   SwitchTenantRequest,
 } from '@slotwise/shared';
 import type { AppDeps } from '../../app';
-import { AppError } from '../../lib/errors';
-import { hashToken } from '../../lib/tokens';
-import { parse, respond } from '../../lib/validate';
-import { requireRole, requireUser, tenantContext } from '../../plugins/auth';
+import { AppError } from '../../http/errors';
+import { hashToken } from '../../credentials/tokens';
+import { parse, respond } from '../../http/validation';
+import { requireRole, requireUser, tenantContext } from '../../http/auth';
 import * as auth from './service';
 import {
   clearSessionCookie,

@@ -1,7 +1,7 @@
 import { Suspense, useState } from 'react';
 import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import type { MeResponse } from '@slotwise/shared';
-import { useLogout, useMe, useSwitchTenant } from '../lib/auth';
+import { useLogout, useMe, useSwitchTenant } from '../api/session';
 import { Wordmark } from './layout';
 import { cx, EmptyState, ErrorState, Loading } from './ui';
 

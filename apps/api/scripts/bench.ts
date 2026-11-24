@@ -20,7 +20,7 @@ import { createDatabase } from '../src/db/database';
 import { withTenant } from '../src/db/tenant-tx';
 import { BullJobs } from '../src/jobs/bull-jobs';
 import { createQueues } from '../src/jobs/queues';
-import { hashPassword } from '../src/lib/passwords';
+import { hashPassword } from '../src/credentials/passwords';
 import { createSession } from '../src/modules/auth/sessions';
 import { replaceRules } from '../src/modules/availability/repo';
 import { insertMembership } from '../src/modules/memberships/repo';

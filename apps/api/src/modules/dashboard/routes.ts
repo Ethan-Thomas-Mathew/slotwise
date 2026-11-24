@@ -3,8 +3,8 @@ import { DashboardSummary } from '@slotwise/shared';
 import { sql } from 'kysely';
 import { DateTime } from 'luxon';
 import type { AppDeps } from '../../app';
-import { respond } from '../../lib/validate';
-import { inTenant, requireRole } from '../../plugins/auth';
+import { respond } from '../../http/validation';
+import { inTenant, requireRole } from '../../http/auth';
 import { getTenant } from '../tenants/repo';
 
 const WEEKS = 8;

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMe } from '../../lib/auth';
-import { get, post } from '../../lib/api';
-import { fmtDateTime } from '../../lib/time';
+import { useMe } from '../../api/session';
+import { get, post } from '../../api/client';
+import { fmtDateTime } from '../../time/format';
 import { Button, EmptyState, ErrorState, Loading, PageHeader, Panel } from '../../components/ui';
 import { useToast } from '../../components/toast';
 

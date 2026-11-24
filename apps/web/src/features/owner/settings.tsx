@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ApiError, get, patch } from '../../lib/api';
+import { ApiError, get, patch } from '../../api/client';
 import {
   Alert,
   Button,

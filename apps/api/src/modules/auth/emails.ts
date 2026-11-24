@@ -1,5 +1,5 @@
 import type { OutgoingEmail } from '../../jobs/types';
-import { escapeHtml } from '../../lib/html';
+import { escapeHtml } from '../../mail/html';
 
 export function passwordResetEmail(to: string, link: string): OutgoingEmail {
   return {

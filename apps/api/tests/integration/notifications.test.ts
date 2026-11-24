@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { sql } from 'kysely';
-import { createTestApp, loginAs, type TestApp } from '../helpers/app';
-import { createTestTenant } from '../helpers/factory';
-import { bookAndPay } from '../helpers/payments';
-import { RecordingMailer } from '../helpers/recording-mailer';
+import { createTestApp, loginAs, type TestApp } from '../support/app';
+import { createTestTenant } from '../support/factory';
+import { bookAndPay } from '../support/payments';
+import { RecordingMailer } from '../support/recording-mailer';
 import { withTenant } from '../../src/db/tenant-tx';
 import { processNotification, reconcile } from '../../src/modules/notifications/service';
 import { createNotification } from '../../src/modules/notifications/repo';
@@ -205,7 +205,7 @@ describe('reconcile housekeeping', () => {
     const tenant = await createTestTenant(t.db);
     const live = await loginAs(t.app, tenant.customer.email, tenant.slug);
     const expired = await loginAs(t.app, tenant.owner.email, tenant.slug);
-    const { hashToken } = await import('../../src/lib/tokens');
+    const { hashToken } = await import('../../src/credentials/tokens');
     const expiredId = hashToken(expired.cookie!.replace('sid=', ''));
     await t.db
       .updateTable('sessions')

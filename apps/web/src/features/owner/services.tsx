@@ -4,8 +4,8 @@ import { formatPaise, type ServiceDto } from '@slotwise/shared';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import type { ApiError } from '../../lib/api';
-import { del, get, patch, post } from '../../lib/api';
+import type { ApiError } from '../../api/client';
+import { del, get, patch, post } from '../../api/client';
 import {
   Alert,
   Button,

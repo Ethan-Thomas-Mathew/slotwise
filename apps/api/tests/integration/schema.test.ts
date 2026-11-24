@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { sql } from 'kysely';
-import { ownerDb } from '../helpers/db';
+import { ownerDb } from '../support/db';
 
 /**
  * Guards against the TypeScript table types (src/db/schema.ts) drifting away

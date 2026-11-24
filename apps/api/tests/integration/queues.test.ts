@@ -4,14 +4,14 @@ import { Redis } from 'ioredis';
 import { sql } from 'kysely';
 import { SMTPServer } from 'smtp-server';
 import type { Worker } from 'bullmq';
-import { createTestApp, loginAs, type TestApp } from '../helpers/app';
-import { createTestTenant } from '../helpers/factory';
-import { bookAndPay } from '../helpers/payments';
-import { RecordingMailer } from '../helpers/recording-mailer';
+import { createTestApp, loginAs, type TestApp } from '../support/app';
+import { createTestTenant } from '../support/factory';
+import { bookAndPay } from '../support/payments';
+import { RecordingMailer } from '../support/recording-mailer';
 import { BullJobs } from '../../src/jobs/bull-jobs';
 import { createQueues, type Queues } from '../../src/jobs/queues';
 import { startWorkers } from '../../src/jobs/workers';
-import { SmtpMailer } from '../../src/lib/mailer';
+import { SmtpMailer } from '../../src/mail/mailer';
 import { withTenant } from '../../src/db/tenant-tx';
 
 /**

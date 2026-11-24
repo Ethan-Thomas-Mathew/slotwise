@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Redis } from 'ioredis';
-import { createTestApp, type TestApp } from '../helpers/app';
+import { createTestApp, type TestApp } from '../support/app';
 
 let t: TestApp;
 let redis: Redis;

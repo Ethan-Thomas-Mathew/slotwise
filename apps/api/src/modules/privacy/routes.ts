@@ -1,8 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import { DataExport, DeleteAccountRequest, OkResponse } from '@slotwise/shared';
 import type { AppDeps } from '../../app';
-import { parse, respond } from '../../lib/validate';
-import { requireUser } from '../../plugins/auth';
+import { parse, respond } from '../../http/validation';
+import { requireUser } from '../../http/auth';
 import { clearSessionCookie } from '../auth/sessions';
 import { deleteMyAccount, exportMyData } from './service';
 

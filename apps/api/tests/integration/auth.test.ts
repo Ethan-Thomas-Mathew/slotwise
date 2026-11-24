@@ -3,8 +3,8 @@ import { randomUUID } from 'node:crypto';
 import { Redis } from 'ioredis';
 import { loadConfig } from '../../src/config';
 import { sql } from 'kysely';
-import { Client, createTestApp, type TestApp } from '../helpers/app';
-import { createTestTenant, TEST_PASSWORD, type TestTenant } from '../helpers/factory';
+import { Client, createTestApp, type TestApp } from '../support/app';
+import { createTestTenant, TEST_PASSWORD, type TestTenant } from '../support/factory';
 import { withTenant } from '../../src/db/tenant-tx';
 
 let t: TestApp;

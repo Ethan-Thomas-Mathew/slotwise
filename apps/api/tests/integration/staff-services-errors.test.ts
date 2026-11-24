@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type * as StaffRepo from '../../src/modules/staff/repo';
 import * as staffRepo from '../../src/modules/staff/repo';
-import { createTestApp, loginAs, type TestApp } from '../helpers/app';
-import { createTestTenant, type TestTenant } from '../helpers/factory';
+import { createTestApp, loginAs, type TestApp } from '../support/app';
+import { createTestTenant, type TestTenant } from '../support/factory';
 
 vi.mock('../../src/modules/staff/repo', async (importOriginal) => {
   const actual = await importOriginal<typeof StaffRepo>();

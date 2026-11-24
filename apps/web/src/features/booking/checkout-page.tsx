@@ -8,13 +8,13 @@ import {
 } from '@slotwise/shared';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { ApiError, get, post } from '../../lib/api';
-import { useMe } from '../../lib/auth';
-import { countdown, fmtDayLong, fmtTime } from '../../lib/time';
+import { ApiError, get, post } from '../../api/client';
+import { useMe } from '../../api/session';
+import { countdown, fmtDayLong, fmtTime } from '../../time/format';
 import { Alert, Button, ErrorState, Loading, Panel, Spinner } from '../../components/ui';
 import { BookingShell } from './booking-page';
 import { openRazorpayCheckout } from './razorpay';
-import { useNow } from '../../lib/use-now';
+import { useNow } from '../../time/use-now';
 
 /**
  * Checkout: hold countdown → pay → "processing" → confirmed.

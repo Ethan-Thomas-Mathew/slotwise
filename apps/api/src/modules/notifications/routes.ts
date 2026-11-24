@@ -2,11 +2,11 @@ import type { FastifyInstance } from 'fastify';
 import { NotificationDto } from '@slotwise/shared';
 import { z } from 'zod';
 import type { AppDeps } from '../../app';
-import { notFound } from '../../lib/errors';
-import { runEffects, type Effects } from '../../lib/effects';
-import { idParam } from '../../lib/params';
-import { parse, respond } from '../../lib/validate';
-import { inTenant, requireRole } from '../../plugins/auth';
+import { notFound } from '../../http/errors';
+import { runEffects, type Effects } from '../../jobs/effects';
+import { idParam } from '../../http/params';
+import { parse, respond } from '../../http/validation';
+import { inTenant, requireRole } from '../../http/auth';
 import { writeAudit } from '../audit/repo';
 import { listNotifications, retryNotification } from './repo';
 

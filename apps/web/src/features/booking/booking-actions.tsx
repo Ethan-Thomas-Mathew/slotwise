@@ -1,13 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatPaise, type BookingDto } from '@slotwise/shared';
 import { useState } from 'react';
-import type { ApiError } from '../../lib/api';
-import { post } from '../../lib/api';
-import { useMe } from '../../lib/auth';
-import { dt, fmtDateTime, fmtTime, nextDates } from '../../lib/time';
+import type { ApiError } from '../../api/client';
+import { post } from '../../api/client';
+import { useMe } from '../../api/session';
+import { dt, fmtDateTime, fmtTime, nextDates } from '../../time/format';
 import { Alert, Button, Dialog, StatusBadge } from '../../components/ui';
 import { useToast } from '../../components/toast';
-import { useNow } from '../../lib/use-now';
+import { useNow } from '../../time/use-now';
 import { DateStrip, SlotTimeline, useOpenDays } from './slot-picker';
 
 function useInvalidateBookings() {

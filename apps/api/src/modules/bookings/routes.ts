@@ -7,11 +7,11 @@ import {
   RescheduleRequest,
 } from '@slotwise/shared';
 import type { AppDeps } from '../../app';
-import { runEffects, type Effects } from '../../lib/effects';
-import { bookingsHeld } from '../../lib/metrics';
-import { idParam } from '../../lib/params';
-import { parse, respond } from '../../lib/validate';
-import { inTenant, requireRole, tenantContext } from '../../plugins/auth';
+import { runEffects, type Effects } from '../../jobs/effects';
+import { bookingsHeld } from '../../metrics';
+import { idParam } from '../../http/params';
+import { parse, respond } from '../../http/validation';
+import { inTenant, requireRole, tenantContext } from '../../http/auth';
 import type { BookingStatus } from '../../db/schema';
 import type { TenantTx } from '../../db/tenant-tx';
 import * as repo from './repo';

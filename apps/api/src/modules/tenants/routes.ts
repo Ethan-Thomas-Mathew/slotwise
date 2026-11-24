@@ -4,9 +4,9 @@ import { DateTime } from 'luxon';
 import { z } from 'zod';
 import type { AppDeps } from '../../app';
 import type { Tenant } from '../../db/schema';
-import { AppError } from '../../lib/errors';
-import { parse, respond } from '../../lib/validate';
-import { inTenant, requireRole } from '../../plugins/auth';
+import { AppError } from '../../http/errors';
+import { parse, respond } from '../../http/validation';
+import { inTenant, requireRole } from '../../http/auth';
 import { writeAudit } from '../audit/repo';
 import { getTenant, updateTenantSettings } from './repo';
 

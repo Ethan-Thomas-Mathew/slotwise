@@ -4,7 +4,7 @@ import SwaggerParser from '@apidevtools/swagger-parser';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadConfig } from '../../src/config';
 import { buildOpenApiDocument, operations } from '../../src/openapi/spec';
-import { createTestApp, type TestApp } from '../helpers/app';
+import { createTestApp, type TestApp } from '../support/app';
 
 let t: TestApp;
 beforeAll(async () => {

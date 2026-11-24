@@ -2,7 +2,7 @@ import type { Server } from 'node:http';
 import { loadConfig } from './config';
 import { buildApp } from './app';
 import { createDeps } from './deps';
-import { startMetricsServer } from './lib/metrics';
+import { startMetricsServer } from './metrics';
 
 const config = loadConfig();
 const { deps, close } = createDeps(config);

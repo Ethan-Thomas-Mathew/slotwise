@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router';
 import type { DataExport, DeleteAccountRequest } from '@slotwise/shared';
 import { Alert, Button, Dialog, Field, PageHeader, Panel } from '../../components/ui';
 import { useToast } from '../../components/toast';
-import { ApiError, get, post, setCsrfToken } from '../../lib/api';
-import { useMe } from '../../lib/auth';
+import { ApiError, get, post, setCsrfToken } from '../../api/client';
+import { useMe } from '../../api/session';
 
 /** Your details, a copy of your data, and erasing your account (India's DPDP Act). */
 export function AccountPage() {

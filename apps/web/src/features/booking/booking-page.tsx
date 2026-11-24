@@ -7,9 +7,9 @@ import {
 } from '@slotwise/shared';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ApiError, get, post } from '../../lib/api';
-import { useMe, useSwitchTenant } from '../../lib/auth';
-import { fmtDayLong, fmtTime, nextDates } from '../../lib/time';
+import { ApiError, get, post } from '../../api/client';
+import { useMe, useSwitchTenant } from '../../api/session';
+import { fmtDayLong, fmtTime, nextDates } from '../../time/format';
 import { Alert, Button, cx, ErrorState, Loading } from '../../components/ui';
 import { Wordmark } from '../../components/layout';
 import { DateStrip, SlotTimeline, useOpenDays } from './slot-picker';

@@ -11,10 +11,10 @@ import {
 import { DateTime } from 'luxon';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import type { ApiError } from '../../lib/api';
-import { del, get, post, put } from '../../lib/api';
-import { useMe } from '../../lib/auth';
-import { fmtDateTime } from '../../lib/time';
+import type { ApiError } from '../../api/client';
+import { del, get, post, put } from '../../api/client';
+import { useMe } from '../../api/session';
+import { fmtDateTime } from '../../time/format';
 import {
   Alert,
   Button,

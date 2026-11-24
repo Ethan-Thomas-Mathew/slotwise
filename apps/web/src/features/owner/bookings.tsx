@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import type { BookingDto, StaffDto } from '@slotwise/shared';
 import { DateTime } from 'luxon';
 import { useState } from 'react';
-import { get } from '../../lib/api';
-import { useMe } from '../../lib/auth';
+import { get } from '../../api/client';
+import { useMe } from '../../api/session';
 import {
   EmptyState,
   ErrorState,

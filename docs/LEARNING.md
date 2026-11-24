@@ -67,9 +67,9 @@ Plain-language notes, one section per phase: what was built, why, and the concep
 **How a login works, step by step:**
 
 1. `POST /auth/login` with email + password.
-2. The server finds the user and checks the password with Argon2 (`src/lib/passwords.ts`). Wrong email and wrong password get the **same** message.
+2. The server finds the user and checks the password with Argon2 (`src/credentials/passwords.ts`). Wrong email and wrong password get the **same** message.
 3. It creates a random session token (`src/modules/auth/sessions.ts`), stores **SHA-256(token)** in `sessions`, and sends the raw token in an `httpOnly` cookie called `sid`.
-4. On every later request, the `onRequest` hook in `src/plugins/auth.ts` hashes the cookie, finds the session, and attaches `req.auth` (user, active business, role).
+4. On every later request, the `onRequest` hook in `src/http/auth.ts` hashes the cookie, finds the session, and attaches `req.auth` (user, active business, role).
 5. Route guards like `requireRole('OWNER')` run before the handler and return 401/403 if needed.
 
 **Why each protection exists:**
@@ -232,8 +232,8 @@ Customer clicks Pay
 
 **How the frontend is organised (`apps/web/src`):**
 
-- `lib/api.ts`: the only place that calls `fetch`. It adds cookies and the CSRF header, and turns API errors into `ApiError` (with field-level messages for forms).
-- `lib/auth.ts`: hooks like `useMe()`, `useLogin()`. After login/logout the whole query cache is cleared, so data from one account never shows in another.
+- `api/client.ts`: the only place that calls `fetch`. It adds cookies and the CSRF header, and turns API errors into `ApiError` (with field-level messages for forms).
+- `api/session.ts`: hooks like `useMe()`, `useLogin()`. After login/logout the whole query cache is cleared, so data from one account never shows in another.
 - `features/…`: one folder per area (booking, owner, staff, customer, auth).
 - `components/ui.tsx`: buttons, fields, dialog, alerts, loading/empty/error states, so every screen handles those three states the same way.
 

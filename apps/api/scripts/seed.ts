@@ -12,7 +12,7 @@
 import { randomUUID } from 'node:crypto';
 import { createDatabase } from '../src/db/database';
 import { withSystem, withTenant } from '../src/db/tenant-tx';
-import { hashPassword } from '../src/lib/passwords';
+import { hashPassword } from '../src/credentials/passwords';
 import { findTenantBySlug, insertTenant } from '../src/modules/tenants/repo';
 import { findUserByEmail, insertUser } from '../src/modules/users/repo';
 import { insertMembership } from '../src/modules/memberships/repo';

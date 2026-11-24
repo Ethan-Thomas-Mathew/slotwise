@@ -3,10 +3,10 @@ import type { FastifyInstance } from 'fastify';
 import { CreateOrderRequest, CreateOrderResponse } from '@slotwise/shared';
 import { z } from 'zod';
 import type { AppDeps } from '../../app';
-import { notFound } from '../../lib/errors';
-import { webhooks } from '../../lib/metrics';
-import { parse, respond } from '../../lib/validate';
-import { inTenant, requireRole, tenantContext } from '../../plugins/auth';
+import { notFound } from '../../http/errors';
+import { webhooks } from '../../metrics';
+import { parse, respond } from '../../http/validation';
+import { inTenant, requireRole, tenantContext } from '../../http/auth';
 import { createOrderForBooking, handleWebhook } from './service';
 
 export async function paymentRoutes(app: FastifyInstance, deps: AppDeps) {

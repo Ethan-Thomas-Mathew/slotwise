@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import './index.css';
-import { queryClient } from './lib/query';
+import { queryClient } from './api/query-client';
 import { ToastProvider } from './components/toast';
 import { AppIndex, AppLayout, RoleGate } from './components/app-layout';
 import { LandingPage, NotFoundPage } from './routes/landing';
@@ -50,7 +50,7 @@ const ActivityPage = lazy(() =>
 const EmailsPage = lazy(() =>
   import('./features/owner/emails').then((m) => ({ default: m.EmailsPage })),
 );
-import { useMe } from './lib/auth';
+import { useMe } from './api/session';
 
 const owner = (el: React.ReactNode) => <RoleGate roles={['OWNER']}>{el}</RoleGate>;
 

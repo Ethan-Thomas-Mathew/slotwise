@@ -15,8 +15,8 @@ import {
 } from '@slotwise/shared';
 import { Alert, Button, ErrorState, Field, Loading } from '../../components/ui';
 import { AuthLayout } from '../../components/layout';
-import { ApiError, get, post } from '../../lib/api';
-import { useAcceptInvite, useLogin, useRegister, useSignup } from '../../lib/auth';
+import { ApiError, get, post } from '../../api/client';
+import { useAcceptInvite, useLogin, useRegister, useSignup } from '../../api/session';
 
 /** Shows server-side validation errors next to the right fields; returns a general message for the rest. */
 function applyServerErrors<T extends FieldValues>(

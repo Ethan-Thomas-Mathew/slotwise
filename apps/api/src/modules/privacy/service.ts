@@ -2,8 +2,8 @@ import { sql } from 'kysely';
 import type { DataExport, DeleteAccountRequest } from '@slotwise/shared';
 import type { Database } from '../../db/database';
 import { withSystem, withTenant, type TenantTx } from '../../db/tenant-tx';
-import { AppError } from '../../lib/errors';
-import { UNUSABLE_PASSWORD_HASH, verifyPassword } from '../../lib/passwords';
+import { AppError } from '../../http/errors';
+import { UNUSABLE_PASSWORD_HASH, verifyPassword } from '../../credentials/passwords';
 import { writeAudit } from '../audit/repo';
 import { lockCustomerHolds } from '../bookings/repo';
 

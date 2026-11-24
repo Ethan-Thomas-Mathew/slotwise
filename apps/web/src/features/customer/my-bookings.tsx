@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import type { BookingDto } from '@slotwise/shared';
 import { Link } from 'react-router';
-import { get } from '../../lib/api';
-import { useMe } from '../../lib/auth';
+import { get } from '../../api/client';
+import { useMe } from '../../api/session';
 import { EmptyState, ErrorState, Loading, PageHeader, Panel } from '../../components/ui';
 import { BookingRow } from '../booking/booking-actions';
-import { useNow } from '../../lib/use-now';
+import { useNow } from '../../time/use-now';
 
 export function MyBookingsPage() {
   const me = useMe();

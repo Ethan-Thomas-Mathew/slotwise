@@ -1,5 +1,5 @@
 import type { OutgoingEmail } from '../../src/jobs/types';
-import type { Mailer } from '../../src/lib/mailer';
+import type { Mailer } from '../../src/mail/mailer';
 
 export class RecordingMailer implements Mailer {
   sent: OutgoingEmail[] = [];

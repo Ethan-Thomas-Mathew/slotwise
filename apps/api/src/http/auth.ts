@@ -2,8 +2,8 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { Database } from '../db/database';
 import type { MembershipRole } from '../db/schema';
 import { withTenant, type TenantTx } from '../db/tenant-tx';
-import { AppError } from '../lib/errors';
-import { safeEqual } from '../lib/tokens';
+import { AppError } from './errors';
+import { safeEqual } from '../credentials/tokens';
 import { loadAuthContext, SESSION_COOKIE, type AuthContext } from '../modules/auth/sessions';
 
 declare module 'fastify' {

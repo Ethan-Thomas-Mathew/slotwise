@@ -3,10 +3,10 @@ import { OkResponse, ServiceDto, ServiceInput, ServicePatch } from '@slotwise/sh
 import { z } from 'zod';
 import type { AppDeps } from '../../app';
 import type { Service } from '../../db/schema';
-import { AppError, notFound } from '../../lib/errors';
-import { idParam } from '../../lib/params';
-import { parse, respond } from '../../lib/validate';
-import { inTenant, requireRole } from '../../plugins/auth';
+import { AppError, notFound } from '../../http/errors';
+import { idParam } from '../../http/params';
+import { parse, respond } from '../../http/validation';
+import { inTenant, requireRole } from '../../http/auth';
 import { writeAudit } from '../audit/repo';
 import * as repo from './repo';
 

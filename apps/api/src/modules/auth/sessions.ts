@@ -2,7 +2,7 @@ import { sql } from 'kysely';
 import type { FastifyReply } from 'fastify';
 import type { Database } from '../../db/database';
 import type { MembershipRole } from '../../db/schema';
-import { hashToken, newToken } from '../../lib/tokens';
+import { hashToken, newToken } from '../../credentials/tokens';
 
 /**
  * Server-side sessions.

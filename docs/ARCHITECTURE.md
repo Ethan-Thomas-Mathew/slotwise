@@ -101,18 +101,23 @@ apps/api/src/
   index.ts          starts the API
   worker.ts         starts the background workers
   config.ts         environment variables, validated
+  metrics.ts        Prometheus metrics and their internal server
   db/               connection, migrations, schema types, withTenant()
-  plugins/          auth (sessions, CSRF, role guards), error handler
+  http/             request authentication (sessions, CSRF, roles), error handler,
+                    errors, input/output validation, path parameters
   modules/<area>/   repo.ts (data access) · service.ts (rules) · routes.ts (HTTP)
-  jobs/             queue definitions, BullMQ implementation, workers
-  lib/              errors, validation, tokens, passwords, mailer, metrics
+  jobs/             queues, BullMQ implementation, workers, post-commit effects
+  credentials/      password hashing, random tokens
+  mail/             SMTP mailer, HTML escaping for emails
   openapi/          the API description (OpenAPI 3.1) built from the route schemas
 apps/api/scripts/ops/  backup and restore drill
 apps/api/tests/
   unit/             pure logic: slot generator, state machine, cancellation policy
   integration/      HTTP + real Postgres + real Redis
+  support/          test app, data factories, fakes for jobs and email
 apps/web/src/
-  lib/              api client, auth hooks, time formatting
+  api/              fetch client, query cache, session hooks (useMe, useLogin...)
+  time/             formatting in the business's timezone, a ticking clock
   components/       UI kit, layouts
   features/         auth, booking, owner, staff, customer
 e2e/                Playwright: critical paths + accessibility

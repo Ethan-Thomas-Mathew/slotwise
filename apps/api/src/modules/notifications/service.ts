@@ -1,7 +1,7 @@
 import { sql } from 'kysely';
 import type { Database } from '../../db/database';
 import { withTenant } from '../../db/tenant-tx';
-import type { Mailer } from '../../lib/mailer';
+import type { Mailer } from '../../mail/mailer';
 import * as bookings from '../bookings/repo';
 import { getTenant } from '../tenants/repo';
 import * as repo from './repo';

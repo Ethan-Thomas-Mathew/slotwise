@@ -1,14 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { sql } from 'kysely';
-import { createTestApp, loginAs, type Client, type TestApp } from '../helpers/app';
-import { createTestTenant, type TestTenant } from '../helpers/factory';
+import { createTestApp, loginAs, type Client, type TestApp } from '../support/app';
+import { createTestTenant, type TestTenant } from '../support/factory';
 import {
   addCustomers,
   confirmDirect,
   dateIn,
   insertBookingDirect,
   slotsFor,
-} from '../helpers/booking';
+} from '../support/booking';
 import { withTenant } from '../../src/db/tenant-tx';
 import { replaceRules } from '../../src/modules/availability/repo';
 import { expireHold } from '../../src/modules/bookings/service';

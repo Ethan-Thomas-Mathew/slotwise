@@ -2,16 +2,16 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { withSystem, withTenant } from '../../src/db/tenant-tx';
 import { insertMembership } from '../../src/modules/memberships/repo';
 import { writeAudit } from '../../src/modules/audit/repo';
-import { Client, createTestApp, loginAs, type TestApp } from '../helpers/app';
+import { Client, createTestApp, loginAs, type TestApp } from '../support/app';
 import {
   addCustomers,
   confirmDirect,
   dateIn,
   insertBookingDirect,
   slotsFor,
-} from '../helpers/booking';
+} from '../support/booking';
 import { holdSlot } from '../../src/modules/bookings/service';
-import { createTestTenant, TEST_PASSWORD, type TestTenant } from '../helpers/factory';
+import { createTestTenant, TEST_PASSWORD, type TestTenant } from '../support/factory';
 
 let t: TestApp;
 let A: TestTenant;

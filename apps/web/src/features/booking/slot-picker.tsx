@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { OpenDaysResponse, SlotsResponse } from '@slotwise/shared';
-import { get } from '../../lib/api';
-import { dt, groupByHour, nextDates } from '../../lib/time';
+import { get } from '../../api/client';
+import { dt, groupByHour, nextDates } from '../../time/format';
 import { cx, ErrorState, Loading } from '../../components/ui';
 
 /**
