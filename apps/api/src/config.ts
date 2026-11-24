@@ -15,6 +15,13 @@ const EnvSchema = z.object({
   MIGRATION_DATABASE_URL: z.string().min(1).optional(),
   REDIS_URL: z.string().min(1).default('redis://localhost:6379'),
 
+  /**
+   * How many reverse proxies sit in front of the API (nginx in Docker = 1). Their
+   * X-Forwarded-For entries are trusted to find the client's real address, which
+   * rate limiting depends on. 0 = the API is reached directly; trust nothing.
+   */
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
+
   SESSION_TTL_DAYS: z.coerce.number().int().positive().default(7),
 
   SMTP_HOST: z.string().default('localhost'),

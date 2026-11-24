@@ -52,6 +52,8 @@ services:
       MIGRATION_DATABASE_URL: postgresql://slotwise_owner:owner_password@postgres:5432/slotwise
       REDIS_URL: redis://redis:6379
       WEB_ORIGIN: http://localhost:8080
+      # The API is reached through nginx (the web container): one proxy hop.
+      TRUST_PROXY_HOPS: '1'
       SMTP_HOST: mailpit
       SMTP_PORT: '1025'
       PAYMENTS_PROVIDER: mock

@@ -15,6 +15,7 @@ import {
 } from '@slotwise/shared';
 import type { AppDeps } from '../../app';
 import { AppError } from '../../lib/errors';
+import { hashToken } from '../../lib/tokens';
 import { parse, respond } from '../../lib/validate';
 import { requireRole, requireUser, tenantContext } from '../../plugins/auth';
 import * as auth from './service';
@@ -33,15 +34,23 @@ export async function authRoutes(app: FastifyInstance, deps: AppDeps) {
 
   /**
    * Brute-force protection: at most 5 attempts per 15 minutes for the same
-   * IP + email. Runs as a preHandler so the body (and email) is already parsed.
+   * client IP and target (the email, or the one-time token for routes that have
+   * no email). Without the target, everyone behind one NAT or proxy would share a
+   * single budget. Runs as a preHandler so the body is already parsed.
    * Counters live in Redis, so the limit holds across several API instances.
    */
   const strictLimit = app.rateLimit({
     max: 5,
     timeWindow: '15 minutes',
     keyGenerator: (req: FastifyRequest) => {
-      const email = (req.body as { email?: unknown } | undefined)?.email;
-      return `${req.routeOptions.url}:${req.ip}:${typeof email === 'string' ? email.toLowerCase() : '-'}`;
+      const body = req.body as { email?: unknown; token?: unknown } | undefined;
+      const target =
+        typeof body?.email === 'string'
+          ? body.email.toLowerCase()
+          : typeof body?.token === 'string'
+            ? `token:${hashToken(body.token)}`
+            : '-';
+      return `${req.routeOptions.url}:${req.ip}:${target}`;
     },
   });
 

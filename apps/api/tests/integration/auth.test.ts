@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { Redis } from 'ioredis';
+import { loadConfig } from '../../src/config';
 import { sql } from 'kysely';
 import { Client, createTestApp, type TestApp } from '../helpers/app';
 import { createTestTenant, TEST_PASSWORD, type TestTenant } from '../helpers/factory';
@@ -344,6 +345,49 @@ describe('rate limiting (Redis-backed, like production)', () => {
     } finally {
       await rt.close();
       await redis.quit();
+    }
+  });
+
+  it('behind a proxy, limits each client separately, and each reset token separately', async () => {
+    // Docker runs the API behind nginx: every request arrives from nginx's address.
+    const rt = await createTestApp({ config: { ...loadConfig(), TRUST_PROXY_HOPS: 1 } });
+    try {
+      const resetFrom = (ip: string, token: string) =>
+        rt.app.inject({
+          method: 'POST',
+          url: '/auth/reset-password',
+          remoteAddress: '172.18.0.5',
+          headers: { 'x-forwarded-for': ip },
+          payload: { token, password: 'newpassword123' },
+        });
+      const codes: number[] = [];
+      for (let i = 0; i < 6; i++) codes.push((await resetFrom('203.0.113.7', 'stolen')).statusCode);
+      expect(codes.at(-1)).toBe(429);
+      // Someone else, through the same nginx, is not affected...
+      expect((await resetFrom('198.51.100.9', 'stolen')).statusCode).not.toBe(429);
+      // ...and neither is the same person with a different reset link.
+      expect((await resetFrom('203.0.113.7', 'another')).statusCode).not.toBe(429);
+    } finally {
+      await rt.close();
+    }
+  });
+
+  it('without a trusted proxy, ignores X-Forwarded-For (a client cannot pick its own address)', async () => {
+    const rt = await createTestApp({ config: { ...loadConfig(), TRUST_PROXY_HOPS: 0 } });
+    try {
+      const codes: number[] = [];
+      for (let i = 0; i < 6; i++) {
+        const res = await rt.app.inject({
+          method: 'POST',
+          url: '/auth/reset-password',
+          headers: { 'x-forwarded-for': `203.0.113.${i}` },
+          payload: { token: 'same', password: 'newpassword123' },
+        });
+        codes.push(res.statusCode);
+      }
+      expect(codes.at(-1)).toBe(429);
+    } finally {
+      await rt.close();
     }
   });
 });

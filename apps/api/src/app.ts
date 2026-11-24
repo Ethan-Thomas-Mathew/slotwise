@@ -67,7 +67,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     genReqId: (req) => (req.headers['x-request-id'] as string | undefined) ?? randomUUID(),
     requestIdHeader: false,
     bodyLimit: 100 * 1024,
-    trustProxy: config.NODE_ENV === 'production',
+    // Trust exactly TRUST_PROXY_HOPS proxies (hop 0 is the one we're connected to).
+    trustProxy: (_address: string, hop: number) => hop < config.TRUST_PROXY_HOPS,
   });
 
   // Keep a list of every route, so a test can check the API docs cover them all.
