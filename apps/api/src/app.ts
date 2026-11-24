@@ -64,7 +64,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
             ],
           },
     // Every request gets an id; it appears in every log line for that request.
-    genReqId: (req) => (req.headers['x-request-id'] as string | undefined) ?? randomUUID(),
+    // A caller's id (e.g. from a proxy) is kept only if it is short and plain, so
+    // it can't flood the logs or smuggle text into them.
+    genReqId: (req) => {
+      const given = req.headers['x-request-id'];
+      return typeof given === 'string' && /^[\w.-]{1,64}$/.test(given) ? given : randomUUID();
+    },
     requestIdHeader: false,
     bodyLimit: 100 * 1024,
     requestTimeout: config.HTTP_REQUEST_TIMEOUT_MS,

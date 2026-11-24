@@ -20,6 +20,23 @@ describe('ops endpoints', () => {
     expect(res.headers['x-request-id']).toBeTruthy();
   });
 
+  it('keeps a well-formed request id from the caller, and replaces anything else', async () => {
+    const keep = await t.app.inject({
+      method: 'GET',
+      url: '/health',
+      headers: { 'x-request-id': 'trace-0123abcd' },
+    });
+    expect(keep.headers['x-request-id']).toBe('trace-0123abcd');
+    for (const bad of ['a'.repeat(200), 'fake"}, "level": 60, "x": "', 'has spaces']) {
+      const res = await t.app.inject({
+        method: 'GET',
+        url: '/health',
+        headers: { 'x-request-id': bad },
+      });
+      expect(res.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/);
+    }
+  });
+
   it('GET /ready checks the database and Redis', async () => {
     const res = await t.app.inject({ method: 'GET', url: '/ready' });
     expect(res.json()).toEqual({ status: 'ok', checks: { database: 'ok', redis: 'ok' } });
