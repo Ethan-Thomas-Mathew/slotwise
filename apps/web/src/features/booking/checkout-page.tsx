@@ -34,7 +34,8 @@ export function CheckoutPage() {
     queryKey: ['booking', bookingId],
     queryFn: () => get<BookingDto>(`/bookings/${bookingId}`),
     enabled: Boolean(me.data),
-    // While waiting for the webhook, check every 1.5 seconds.
+    // Only the payment webhook confirms a booking (the redirect proves nothing),
+    // so keep asking the API until it has arrived.
     refetchInterval: (q) => (paying && q.state.data?.status === 'HELD' ? 1500 : false),
   });
 

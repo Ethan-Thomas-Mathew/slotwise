@@ -32,9 +32,7 @@ interface Deps {
   jobs: Jobs;
 }
 
-// ---------------------------------------------------------------------------
 // Policy: who may do what, and when
-// ---------------------------------------------------------------------------
 
 interface BookingPolicy {
   canCancel: boolean;
@@ -77,9 +75,7 @@ export function bookingPolicy(
   return { canCancel: false, canReschedule: false, refundOnCancel: false };
 }
 
-// ---------------------------------------------------------------------------
 // Reading
-// ---------------------------------------------------------------------------
 
 /** Loads a booking the actor is allowed to see, or throws 404. */
 export async function getVisibleBooking(tx: TenantTx, actor: Actor, id: string) {
@@ -133,9 +129,7 @@ export async function toBookingDtos(
   });
 }
 
-// ---------------------------------------------------------------------------
 // Hold
-// ---------------------------------------------------------------------------
 
 /**
  * Reserves a slot for 10 minutes while the customer pays.
@@ -240,9 +234,7 @@ export async function holdSlot(
   return booking;
 }
 
-// ---------------------------------------------------------------------------
 // Cancel
-// ---------------------------------------------------------------------------
 
 export async function cancelBooking(
   tx: TenantTx,
@@ -270,7 +262,6 @@ export async function cancelBooking(
   const tenantId = tx.tenantId;
   let refund: 'FULL' | 'NONE' = 'NONE';
   if (booking.status === 'CONFIRMED') {
-    // Stop the reminder; tell the customer it's cancelled.
     const cancelledIds = await cancelPendingNotifications(tx, bookingId, ['BOOKING_REMINDER']);
     for (const id of cancelledIds) effects.push(() => deps.jobs.cancelNotification(id));
     const n = await createNotification(tx, bookingId, 'BOOKING_CANCELLED');
@@ -299,9 +290,7 @@ export async function cancelBooking(
   return { refund };
 }
 
-// ---------------------------------------------------------------------------
 // Reschedule
-// ---------------------------------------------------------------------------
 
 /**
  * Moves a booking with ONE UPDATE of the same row. There is never a moment
@@ -357,7 +346,6 @@ export async function rescheduleBooking(
     throw err;
   }
 
-  // Move the reminder: cancel the old one, create a new one for the new time.
   const tenantId = tx.tenantId;
   const cancelledIds = await cancelPendingNotifications(tx, bookingId, ['BOOKING_REMINDER']);
   for (const id of cancelledIds) effects.push(() => deps.jobs.cancelNotification(id));
@@ -377,9 +365,7 @@ export async function rescheduleBooking(
   return moved!;
 }
 
-// ---------------------------------------------------------------------------
 // Completed / no-show (staff or owner, after the appointment has started)
-// ---------------------------------------------------------------------------
 
 export async function markOutcome(
   tx: TenantTx,
@@ -408,9 +394,7 @@ export async function markOutcome(
   return updated;
 }
 
-// ---------------------------------------------------------------------------
 // Background job: hold expiry
-// ---------------------------------------------------------------------------
 
 /** Called by the hold-expiry job. Only expires it if it's STILL held and the time has passed. */
 export async function expireHold(tx: TenantTx, bookingId: string) {

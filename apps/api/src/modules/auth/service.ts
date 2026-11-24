@@ -174,7 +174,7 @@ export async function buildMe(db: Database, auth: AuthContext): Promise<MeRespon
   return { user: auth.user, csrfToken: auth.csrfToken, activeTenant, memberships };
 }
 
-// ---------- Password reset ----------
+// Password reset
 
 export async function requestPasswordReset(
   db: Database,
@@ -222,7 +222,7 @@ export async function resetPassword(db: Database, token: string, newPassword: st
   await deleteAllSessionsForUser(db, row.user_id);
 }
 
-// ---------- Staff invites ----------
+// Staff invites
 
 export async function inviteStaff(
   db: Database,

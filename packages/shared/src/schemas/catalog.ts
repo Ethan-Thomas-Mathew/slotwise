@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ClockTime, Email, IsoDateTime, Paise, PersonName, Role, Uuid } from './common';
 
-// ---------- Services ----------
+// Services
 export const ServiceInput = z.object({
   name: z.string().trim().min(1).max(120),
   durationMinutes: z.number().int().min(5).max(720),
@@ -20,7 +20,7 @@ export const ServiceDto = z.object({
 });
 export type ServiceDto = z.infer<typeof ServiceDto>;
 
-// ---------- Staff ----------
+// Staff
 export const StaffDto = z.object({
   membershipId: Uuid,
   name: z.string(),
@@ -35,7 +35,7 @@ export const InviteStaffResponse = z.object({ inviteLink: z.url() });
 export type InviteStaffResponse = z.infer<typeof InviteStaffResponse>;
 export const SetStaffServicesRequest = z.object({ serviceIds: z.array(Uuid).max(100) });
 
-// ---------- Availability ----------
+// Availability
 export const AvailabilityRule = z
   .object({
     weekday: z.number().int().min(1).max(7), // 1 = Monday
@@ -73,7 +73,7 @@ export const TimeOffDto = z.object({
   reason: z.string().nullable(),
 });
 
-// ---------- Tenant settings ----------
+// Tenant settings
 export const TenantSettingsPatch = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   timezone: z.string().min(1).max(64).optional(),

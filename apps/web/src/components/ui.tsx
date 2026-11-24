@@ -13,7 +13,7 @@ import { ApiError } from '../api/client';
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 
-// ---------- Buttons ----------
+// Buttons
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 const variants: Record<Variant, string> = {
   primary: 'bg-peacock text-white hover:bg-peacock-dark disabled:bg-peacock/50',
@@ -52,7 +52,7 @@ export function LinkButton({
   return <Link {...rest} className={cx(buttonBase, variants[variant], className)} />;
 }
 
-// ---------- Form fields ----------
+// Form fields
 interface FieldProps {
   label: string;
   error?: string | undefined;
@@ -125,7 +125,7 @@ export const SelectField = forwardRef<
   );
 });
 
-// ---------- Feedback ----------
+// Feedback
 export function Spinner({ small }: { small?: boolean }) {
   return (
     <span
@@ -193,7 +193,7 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
   );
 }
 
-// ---------- Layout bits ----------
+// Layout bits
 export function PageHeader({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
@@ -242,7 +242,7 @@ export function StatusBadge({ status }: { status: string }) {
   );
 }
 
-// ---------- Dialog (native <dialog>: focus trapping and Escape for free) ----------
+// Dialog (native <dialog>: focus trapping and Escape for free)
 export function Dialog({
   open,
   onClose,

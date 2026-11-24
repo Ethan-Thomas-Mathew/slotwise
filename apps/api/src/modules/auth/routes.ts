@@ -119,7 +119,7 @@ export async function authRoutes(app: FastifyInstance, deps: AppDeps) {
     return respond(OkResponse, { ok: true });
   });
 
-  // ---------- Staff invites ----------
+  // Staff invites
 
   app.post('/staff/invites', { preHandler: requireRole('OWNER') }, async (req, reply) => {
     const body = parse(InviteStaffRequest, req.body);

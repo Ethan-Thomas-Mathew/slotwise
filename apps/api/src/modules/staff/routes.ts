@@ -91,7 +91,7 @@ export async function staffRoutes(app: FastifyInstance, { db }: AppDeps) {
     return respond(OkResponse, { ok: true });
   });
 
-  // ---------- Working hours ----------
+  // Working hours
 
   /** Owners can read anyone's hours; staff can read their own. */
   app.get('/staff/:id/availability', { preHandler: requireRole('OWNER', 'STAFF') }, async (req) => {
@@ -141,7 +141,7 @@ export async function staffRoutes(app: FastifyInstance, { db }: AppDeps) {
     return respond(OkResponse, { ok: true });
   });
 
-  // ---------- Time off ----------
+  // Time off
 
   app.get('/staff/:id/time-off', { preHandler: requireRole('OWNER', 'STAFF') }, async (req) => {
     const id = idParam(req, 'id', 'Staff member');

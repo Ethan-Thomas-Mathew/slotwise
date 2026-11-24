@@ -21,7 +21,7 @@ export const PaymentStatus = z.enum([
 ]);
 export type PaymentStatus = z.infer<typeof PaymentStatus>;
 
-// ---------- Public booking page ----------
+// Public booking page
 export const PublicTenantResponse = z.object({
   tenant: z.object({
     name: z.string(),
@@ -60,7 +60,7 @@ export const OpenDaysResponse = z.object({
 });
 export type OpenDaysResponse = z.infer<typeof OpenDaysResponse>;
 
-// ---------- Bookings ----------
+// Bookings
 export const HoldRequest = z.object({
   serviceId: Uuid,
   staffId: StaffChoice,
@@ -98,7 +98,7 @@ export const BookingListQuery = z.object({
   staffId: Uuid.optional(),
 });
 
-// ---------- Payments ----------
+// Payments
 export const CreateOrderRequest = z.object({ bookingId: Uuid });
 export const CreateOrderResponse = z.object({
   provider: z.enum(['mock', 'razorpay']),
@@ -112,7 +112,7 @@ export const CreateOrderResponse = z.object({
 });
 export type CreateOrderResponse = z.infer<typeof CreateOrderResponse>;
 
-// ---------- Dashboards ----------
+// Dashboards
 export const DashboardSummary = z.object({
   todayCount: z.number().int(),
   upcomingCount: z.number().int(),

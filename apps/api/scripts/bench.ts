@@ -67,7 +67,7 @@ const app = await buildApp({
 });
 const address = await app.listen({ port: 0, host: '127.0.0.1' });
 
-// ---------- setup: one business, 10 staff working 24/7, many customers ----------
+// setup: one business, 10 staff working 24/7, many customers
 const tenantId = randomUUID();
 const slug = `bench-${tenantId.slice(0, 8)}`;
 const customersNeeded = Math.ceil(HOLDS / 3) * 2 + 10; // 3 open holds per customer, 2 scenarios
@@ -132,7 +132,7 @@ function slotTimes(count: number, dayOffset: number) {
   );
 }
 
-// ---------- tiny load generator ----------
+// tiny load generator
 interface Result {
   name: string;
   requests: number;
@@ -258,7 +258,7 @@ ${results
   .join('\n')}
 `);
 
-// ---------- clean up ----------
+// clean up
 await app.close();
 await withTenant(db, tenantId, async (tx) => {
   await tx.db.deleteFrom('bookings').where('tenant_id', '=', tenantId).execute();

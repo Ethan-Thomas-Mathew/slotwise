@@ -79,7 +79,7 @@ const owner: Who = ['OWNER'];
 const anyMember: Who = ['OWNER', 'STAFF', 'CUSTOMER'];
 
 export const operations: Operation[] = [
-  // --- Ops -------------------------------------------------------------------
+  // Ops
   {
     method: 'get',
     path: '/health',
@@ -100,7 +100,7 @@ export const operations: Operation[] = [
     }),
   },
 
-  // --- Auth ------------------------------------------------------------------
+  // Auth
   {
     method: 'post',
     path: '/auth/signup',
@@ -198,7 +198,7 @@ export const operations: Operation[] = [
     strictLimit: true,
   },
 
-  // --- Your data (privacy) -------------------------------------------------
+  // Your data (privacy)
   {
     method: 'get',
     path: '/account/data',
@@ -219,7 +219,7 @@ export const operations: Operation[] = [
     response: OkResponse,
   },
 
-  // --- Public booking page ---------------------------------------------------
+  // Public booking page
   {
     method: 'get',
     path: '/public/:slug',
@@ -247,7 +247,7 @@ export const operations: Operation[] = [
     response: OpenDaysResponse,
   },
 
-  // --- Bookings --------------------------------------------------------------
+  // Bookings
   {
     method: 'post',
     path: '/bookings/hold',
@@ -328,7 +328,7 @@ export const operations: Operation[] = [
     response: BookingDto,
   },
 
-  // --- Payments --------------------------------------------------------------
+  // Payments
   {
     method: 'post',
     path: '/payments/order',
@@ -360,7 +360,7 @@ export const operations: Operation[] = [
     response: z.object({ status: z.enum(['processed', 'duplicate', 'ignored', 'rejected']) }),
   },
 
-  // --- Catalog and team ------------------------------------------------------
+  // Catalog and team
   {
     method: 'get',
     path: '/services',
@@ -475,7 +475,7 @@ export const operations: Operation[] = [
     response: OkResponse,
   },
 
-  // --- Business admin --------------------------------------------------------
+  // Business admin
   {
     method: 'get',
     path: '/tenant/settings',
@@ -528,8 +528,6 @@ export const operations: Operation[] = [
     response: OkResponse,
   },
 ];
-
-// ---------------------------------------------------------------------------
 
 type JsonSchema = Record<string, unknown>;
 

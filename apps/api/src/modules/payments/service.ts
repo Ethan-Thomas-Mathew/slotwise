@@ -25,9 +25,7 @@ interface Deps {
   log: FastifyBaseLogger;
 }
 
-// ---------------------------------------------------------------------------
 // 1. Create an order (customer clicks "Pay")
-// ---------------------------------------------------------------------------
 
 /**
  * The amount ALWAYS comes from our database (the price copied onto the booking),
@@ -114,9 +112,7 @@ export async function createOrderForBooking(
   }
 }
 
-// ---------------------------------------------------------------------------
 // 2. Webhook: the provider tells us what happened (the source of truth)
-// ---------------------------------------------------------------------------
 
 /**
  * The parts of a Razorpay event we read. Everything is optional because event
@@ -411,9 +407,7 @@ async function onRefundProcessed(tx: TenantTx, event: RazorpayEvent) {
   });
 }
 
-// ---------------------------------------------------------------------------
 // 3. Refund job
-// ---------------------------------------------------------------------------
 
 /**
  * Runs in the background (BullMQ "refunds" queue). Safe to run any number of
