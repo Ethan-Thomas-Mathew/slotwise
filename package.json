@@ -19,7 +19,8 @@
     "db:seed": "pnpm --filter @slotwise/api db:seed",
     "test:coverage": "pnpm -r --filter '!@slotwise/api' test && pnpm --filter @slotwise/api test:coverage",
     "db:backup": "pnpm --filter @slotwise/api db:backup",
-    "db:restore-drill": "pnpm --filter @slotwise/api db:restore-drill"
+    "db:restore-drill": "pnpm --filter @slotwise/api db:restore-drill",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
@@ -31,10 +32,19 @@
     "eslint": "^9.39.0",
     "eslint-plugin-react-hooks": "^7.0.0",
     "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "mailparser": "^3.15.0",
     "prettier": "^3.6.0",
     "smtp-server": "^3.21.7",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,cjs}": [
+      "eslint --fix --no-warn-ignored",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,css,html}": "prettier --write"
   }
 }

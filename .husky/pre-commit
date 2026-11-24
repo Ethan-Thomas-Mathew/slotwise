@@ -1,0 +1,3 @@
+# Before each commit: lint and format only the files being committed.
+# (Skip once in an emergency with: git commit --no-verify)
+pnpm exec lint-staged
