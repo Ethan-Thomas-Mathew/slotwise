@@ -5,7 +5,11 @@ import { createDeps } from './deps';
 import { startMetricsServer } from './metrics';
 
 const config = loadConfig();
-const { deps, close } = createDeps(config);
+// The database pool exists before the app (and its logger), so it reports dropped
+// connections through the app's logger once that exists.
+const { deps, close } = createDeps(config, {
+  warn: (obj: object, msg: string) => app.log.warn(obj, msg),
+});
 const app = await buildApp(deps);
 
 let metricsServer: Server | undefined;

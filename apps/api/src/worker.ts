@@ -16,7 +16,7 @@ import { createPaymentProvider } from './modules/payments/provider';
 const config = loadConfig();
 const log = pino({ level: config.LOG_LEVEL, name: 'worker' });
 
-const db = createDatabase(config.DATABASE_URL, runtimePoolOptions(config));
+const db = createDatabase(config.DATABASE_URL, runtimePoolOptions(config, log));
 const connection = new Redis(config.REDIS_URL, { maxRetriesPerRequest: null });
 const queues = createQueues(connection);
 const jobs = new BullJobs(queues);

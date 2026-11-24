@@ -18,7 +18,12 @@ describe('timeouts', () => {
   });
 
   it('ends a transaction that sits idle too long, releasing its locks', async () => {
-    const db = createDatabase(process.env.DATABASE_URL!, { max: 1, idleInTransactionMs: 100 });
+    const dropped: Error[] = [];
+    const db = createDatabase(process.env.DATABASE_URL!, {
+      max: 1,
+      idleInTransactionMs: 100,
+      onConnectionError: (err) => dropped.push(err),
+    });
     try {
       const stuck = db.transaction().execute(async (trx) => {
         await sql`SELECT 1`.execute(trx);
@@ -26,6 +31,11 @@ describe('timeouts', () => {
         await sql`SELECT 1`.execute(trx);
       });
       await expect(stuck).rejects.toThrow();
+      // The server's notice arrives as a connection error: reported, not a crash.
+      expect(dropped.length).toBeGreaterThan(0);
+      // The pool replaced the dropped connection.
+      const { rows } = await sql<{ ok: number }>`SELECT 1 AS ok`.execute(db);
+      expect(rows[0]!.ok).toBe(1);
     } finally {
       await db.destroy();
     }
