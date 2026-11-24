@@ -22,6 +22,13 @@ const EnvSchema = z.object({
    */
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
 
+  /** Timeouts (milliseconds). See createDatabase for why they exist. */
+  DB_STATEMENT_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
+  DB_IDLE_IN_TRANSACTION_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
+  DB_CONNECT_TIMEOUT_MS: z.coerce.number().int().positive().default(5_000),
+  /** A client gets this long to send its whole request (Node's default is 5 minutes). */
+  HTTP_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
+
   SESSION_TTL_DAYS: z.coerce.number().int().positive().default(7),
 
   SMTP_HOST: z.string().default('localhost'),
