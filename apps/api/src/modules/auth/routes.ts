@@ -14,7 +14,6 @@ import {
   SwitchTenantRequest,
 } from '@slotwise/shared';
 import type { AppDeps } from '../../app';
-import { AppError } from '../../http/errors';
 import { hashToken } from '../../credentials/tokens';
 import { parse, respond } from '../../http/validation';
 import { requireRole, requireUser, tenantContext } from '../../http/auth';
@@ -95,9 +94,8 @@ export async function authRoutes(app: FastifyInstance, deps: AppDeps) {
     return respond(OkResponse, { ok: true });
   });
 
-  app.get('/auth/me', async (req) => {
-    if (!req.auth) throw new AppError('UNAUTHENTICATED', 'Not logged in');
-    return respond(MeResponse, await auth.buildMe(db, req.auth));
+  app.get('/auth/me', { preHandler: requireUser }, async (req) => {
+    return respond(MeResponse, await auth.buildMe(db, req.auth!));
   });
 
   app.post('/auth/active-tenant', { preHandler: requireUser }, async (req) => {

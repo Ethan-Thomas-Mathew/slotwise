@@ -34,6 +34,18 @@ describe('API documentation (OpenAPI)', () => {
     ).toEqual([]);
   });
 
+  it('states the same access rule as each route enforces (public, signed in, or roles)', () => {
+    const enforced = new Map(t.app.routeList.map((r) => [key(r.method, r.url), r.who]));
+    const normalise = (who: unknown) => (Array.isArray(who) ? [...who].sort().join(',') : who);
+    const mismatches = operations
+      .filter((o) => normalise(o.who) !== normalise(enforced.get(key(o.method, o.path))))
+      .map(
+        (o) =>
+          `${key(o.method, o.path)}: docs say ${normalise(o.who)}, route enforces ${normalise(enforced.get(key(o.method, o.path)))}`,
+      );
+    expect(mismatches).toEqual([]);
+  });
+
   it('is a valid OpenAPI 3.1 document', async () => {
     const doc = structuredClone(buildOpenApiDocument());
     await expect(SwaggerParser.validate(doc as never)).resolves.toBeTruthy();

@@ -15,7 +15,7 @@ import type { PaymentProvider } from './modules/payments/provider';
 import { AppError } from './http/errors';
 import { httpDuration } from './metrics';
 import { buildOpenApiDocument } from './openapi/spec';
-import { registerAuth } from './http/auth';
+import { accessRuleOf, registerAuth, type AccessRule } from './http/auth';
 import { registerErrorHandler } from './http/error-handler';
 import { authRoutes } from './modules/auth/routes';
 import { auditRoutes } from './modules/audit/routes';
@@ -31,7 +31,7 @@ import { tenantRoutes } from './modules/tenants/routes';
 
 declare module 'fastify' {
   interface FastifyInstance {
-    routeList: { method: string; url: string }[];
+    routeList: { method: string; url: string; who: AccessRule }[];
   }
 }
 
@@ -78,10 +78,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   // Keep a list of every route, so a test can check the API docs cover them all.
-  const routeList: { method: string; url: string }[] = [];
+  const routeList: { method: string; url: string; who: AccessRule }[] = [];
   app.decorate('routeList', routeList);
   app.addHook('onRoute', (r) => {
-    for (const m of [r.method].flat()) routeList.push({ method: m, url: r.url });
+    const who = accessRuleOf(r.preHandler);
+    for (const m of [r.method].flat()) routeList.push({ method: m, url: r.url, who });
   });
 
   registerErrorHandler(app);

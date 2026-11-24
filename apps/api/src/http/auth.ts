@@ -52,7 +52,7 @@ export async function requireUser(req: FastifyRequest, _reply: FastifyReply) {
 
 /** Route guard: must be logged in AND have one of these roles in the active tenant. */
 export function requireRole(...roles: MembershipRole[]) {
-  return async function roleGuard(req: FastifyRequest, reply: FastifyReply) {
+  const roleGuard = async (req: FastifyRequest, reply: FastifyReply) => {
     await requireUser(req, reply);
     const m = req.auth!.membership;
     if (!m) throw new AppError('FORBIDDEN', 'Choose a business first');
@@ -60,6 +60,20 @@ export function requireRole(...roles: MembershipRole[]) {
       throw new AppError('FORBIDDEN', 'You do not have permission to do that');
     }
   };
+  // Read by accessRuleOf(), so a test can check the API docs state the same rule.
+  return Object.assign(roleGuard, { roles });
+}
+
+export type AccessRule = 'public' | 'signed-in' | MembershipRole[];
+
+/** Which access rule a route's preHandlers enforce. */
+export function accessRuleOf(preHandler: unknown): AccessRule {
+  const handlers = [preHandler].flat();
+  const withRoles = handlers.find(
+    (h): h is { roles: MembershipRole[] } => typeof h === 'function' && 'roles' in h,
+  );
+  if (withRoles) return withRoles.roles;
+  return handlers.includes(requireUser) ? 'signed-in' : 'public';
 }
 
 interface TenantContext {
