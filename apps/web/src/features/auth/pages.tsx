@@ -1,6 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-import { useForm, type FieldValues, type Path, type UseFormSetError } from 'react-hook-form';
+import {
+  useForm,
+  useWatch,
+  type FieldValues,
+  type Path,
+  type UseFormSetError,
+} from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
@@ -105,11 +111,11 @@ export function SignupPage() {
   const navigate = useNavigate();
   const signup = useSignup();
   const [formError, setFormError] = useState('');
-  const { register, handleSubmit, setError, formState, watch } = useForm({
+  const { register, handleSubmit, setError, formState, control } = useForm({
     resolver: zodResolver(SignupOwnerRequest),
     defaultValues: { timezone: 'Asia/Kolkata' },
   });
-  const slug = watch('slug');
+  const slug = useWatch({ control, name: 'slug' });
 
   return (
     <AuthLayout

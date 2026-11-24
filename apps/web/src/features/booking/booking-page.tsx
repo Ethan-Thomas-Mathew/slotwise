@@ -6,7 +6,7 @@ import {
   type PublicTenantResponse,
 } from '@slotwise/shared';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ApiError, get, post } from '../../api/client';
 import { useMe, useSwitchTenant } from '../../api/session';
 import { fmtDayLong, fmtTime, nextDates } from '../../time/format';
@@ -33,11 +33,6 @@ export function BookingPage() {
 
   const tz = page.data?.tenant.timezone ?? 'Asia/Kolkata';
   const serviceId = params.get('service');
-  const staffId = params.get('staff');
-  const stripDays = Math.min(page.data?.tenant.bookingHorizonDays ?? 21, 21);
-  const openDays = useOpenDays(slug, serviceId ?? undefined, staffId ?? undefined, tz, stripDays);
-  // Until the customer picks a day, show the first day that has open times.
-  const date = params.get('date') ?? openDays.firstOpen ?? nextDates(tz, 1)[0]!;
   const time = params.get('time');
 
   const set = (changes: Record<string, string | null>) => {
@@ -62,15 +57,16 @@ export function BookingPage() {
         : staffForService,
     [staffForService],
   );
+  // With only one person offering the service, they are the choice; nothing to pick.
+  const staffId =
+    params.get('staff') ?? (staffForService.length === 1 ? staffForService[0]!.membershipId : null);
   const staff = staffOptions.find((s) => s.membershipId === staffId);
   const isAny = staff?.membershipId === 'any';
 
-  // With only one person offering the service, pick them automatically.
-  useEffect(() => {
-    if (serviceId && !staffId && staffForService.length === 1)
-      set({ staff: staffForService[0]!.membershipId });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serviceId, staffId, staffForService]);
+  const stripDays = Math.min(page.data?.tenant.bookingHorizonDays ?? 21, 21);
+  const openDays = useOpenDays(slug, serviceId ?? undefined, staffId ?? undefined, tz, stripDays);
+  // Until the customer picks a day, show the first day that has open times.
+  const date = params.get('date') ?? openDays.firstOpen ?? nextDates(tz, 1)[0]!;
 
   const [holdError, setHoldError] = useState('');
   const hold = useMutation({
