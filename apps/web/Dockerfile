@@ -3,7 +3,7 @@
 #   docker build -f apps/web/Dockerfile -t slotwise-web .
 #   docker run -e API_URL=http://api:3000 -p 8080:8080 slotwise-web
 
-FROM node:22-slim AS build
+FROM node:25-slim AS build
 ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH
 RUN corepack enable
 WORKDIR /repo
