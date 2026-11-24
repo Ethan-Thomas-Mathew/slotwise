@@ -10,15 +10,14 @@ import type { FastifyBaseLogger } from 'fastify';
  */
 export type Effects = Array<() => Promise<unknown>>;
 
-export async function runEffects(effects: Effects, log?: FastifyBaseLogger) {
+export async function runEffects(effects: Effects, log: Pick<FastifyBaseLogger, 'warn'>) {
   for (const effect of effects) {
     try {
       await effect();
     } catch (err) {
-      (log ?? console).warn(
-        { err },
-        'Post-commit side effect failed; the reconciler will retry it',
-      );
+      // Logged and not rethrown: the change is committed and the reconciler retries
+      // the effect within a minute, so failing the request would only mislead the caller.
+      log.warn({ err }, 'Post-commit side effect failed; the reconciler will retry it');
     }
   }
 }

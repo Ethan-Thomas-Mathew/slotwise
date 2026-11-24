@@ -22,7 +22,7 @@ interface Deps {
   db: Database;
   jobs: Jobs;
   payments: PaymentProvider;
-  log?: FastifyBaseLogger;
+  log: FastifyBaseLogger;
 }
 
 // ---------------------------------------------------------------------------
@@ -89,7 +89,7 @@ export async function createOrderForBooking(
       notes: { booking_id: bookingId, tenant_id: ctx.tenantId },
     }));
   } catch (err) {
-    deps.log?.error({ err }, 'Payment provider createOrder failed');
+    deps.log.error({ err }, 'Payment provider createOrder failed');
     throw new AppError('PAYMENT_PROVIDER_ERROR', 'Could not start the payment. Please try again.');
   }
 
@@ -176,7 +176,7 @@ export async function handleWebhook(
   input: { rawBody: string; signature: string | undefined; eventId: string | undefined },
 ): Promise<WebhookOutcome> {
   if (!input.signature || !deps.payments.verifyWebhookSignature(input.rawBody, input.signature)) {
-    deps.log?.warn('Rejected webhook with an invalid signature');
+    deps.log.warn('Rejected webhook with an invalid signature');
     throw new AppError('BAD_SIGNATURE', 'Invalid webhook signature');
   }
   const event = parseEvent(input.rawBody);
@@ -213,7 +213,7 @@ export async function handleWebhook(
       })
       .onConflict((oc) => oc.column('event_id').doNothing())
       .execute();
-    deps.log?.info({ type: event.event, orderId }, 'Ignored webhook for unknown order');
+    deps.log.info({ type: event.event, orderId }, 'Ignored webhook for unknown order');
     return 'ignored';
   }
 
@@ -279,7 +279,7 @@ async function onPaymentCaptured(
     // the request would make the provider retry an event that can never succeed,
     // so it is recorded and acknowledged; the owner sees it in the activity log
     // and refunds it from the provider's dashboard. Metrics alert on `rejected`.
-    deps.log?.error(
+    deps.log.error(
       { orderId: entity.order_id, expected: payment.amount_paise, captured: entity.amount },
       'Captured amount does not match the order amount',
     );

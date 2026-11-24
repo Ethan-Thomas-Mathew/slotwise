@@ -31,9 +31,10 @@ export class BullJobs implements Jobs {
   }
 
   async cancelNotification(notificationId: string) {
-    // remove() is a no-op if the job doesn't exist. If it's running right now,
-    // removal fails; that's fine because the worker re-checks the row's status.
-    await this.queues.notifications.remove(`notification-${notificationId}`).catch(() => 0);
+    // remove() returns 0, without throwing, if the job doesn't exist or is running
+    // right now; that's fine because the worker re-checks the row's status before
+    // sending. Real failures (Redis unreachable) propagate.
+    await this.queues.notifications.remove(`notification-${notificationId}`);
   }
 
   async enqueueRefund(tenantId: string, paymentId: string) {
