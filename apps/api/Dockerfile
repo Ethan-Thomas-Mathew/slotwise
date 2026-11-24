@@ -31,5 +31,7 @@ COPY --from=build /repo/apps/api/dist ./dist
 # Don't run as root.
 USER node
 EXPOSE 3000
+# Health check for the API. When this image runs the worker (no web server),
+# turn it off there, e.g. `healthcheck: { disable: true }` in docker compose.
 HEALTHCHECK --interval=15s --timeout=3s CMD node -e "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 CMD ["node", "--enable-source-maps", "dist/index.js"]

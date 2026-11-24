@@ -1,4 +1,6 @@
 # Local infrastructure for development and tests.
+# Every port is bound to 127.0.0.1: reachable from this computer only, never
+# from other devices on the same Wi-Fi (the passwords here are demo values).
 # Start with:  docker compose up -d
 services:
   postgres:
@@ -8,7 +10,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
       # Runs once, on the first start, to create the two app roles and databases.
@@ -22,7 +24,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - '6379:6379'
+      - '127.0.0.1:6379:6379'
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
@@ -33,8 +35,8 @@ services:
     # Catches every email the app sends. Open http://localhost:8025 to read them.
     image: axllent/mailpit:latest
     ports:
-      - '1025:1025' # SMTP
-      - '8025:8025' # Web UI + API
+      - '127.0.0.1:1025:1025' # SMTP
+      - '127.0.0.1:8025:8025' # Web UI + API
 
   # ---------------------------------------------------------------------------
   # The whole app, built from source:  docker compose --profile full up --build
@@ -80,7 +82,7 @@ services:
     environment:
       API_URL: http://api:3000
     ports:
-      - '8080:8080'
+      - '127.0.0.1:8080:8080'
     depends_on: [api]
 
 volumes:
