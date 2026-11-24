@@ -30,9 +30,9 @@ export async function bookingRoutes(app: FastifyInstance, deps: AppDeps) {
     fn: (tx: TenantTx, effects: Effects) => Promise<T>,
   ) {
     const effects: Effects = [];
-    const result = await inTenant(db, req, (tx) => fn(tx, effects));
+    const changed = await inTenant(db, req, (tx) => fn(tx, effects));
     await runEffects(effects, req.log);
-    return result;
+    return changed;
   }
 
   async function dto(req: FastifyRequest, id: string) {

@@ -59,9 +59,9 @@ export function startWorkers(deps: WorkerDeps, connection: ConnectionOptions, pr
     new Worker<RefundJob>(
       QUEUE.refunds,
       async (job) => {
-        const result = await processRefund(deps, job.data.tenantId, job.data.paymentId);
-        if (result === 'refunded') refunds.inc();
-        return result;
+        const outcome = await processRefund(deps, job.data.tenantId, job.data.paymentId);
+        if (outcome === 'refunded') refunds.inc();
+        return outcome;
       },
       { ...opts, concurrency: 2 },
     ),

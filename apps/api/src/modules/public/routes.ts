@@ -62,15 +62,15 @@ export async function publicRoutes(app: FastifyInstance, { db }: AppDeps) {
   app.get('/public/:slug/slots', async (req) => {
     const tenant = await tenantFromSlug((req.params as { slug: string }).slug);
     const q = parse(SlotsQuery, req.query);
-    const result = await withTenant(db, tenant.id, (tx) =>
+    const open = await withTenant(db, tenant.id, (tx) =>
       q.staffId === 'any'
         ? findSlotsAnyStaff(tx, { serviceId: q.serviceId, date: q.date })
         : findSlots(tx, { serviceId: q.serviceId, staffId: q.staffId, date: q.date }),
     );
     return respond(SlotsResponse, {
       date: q.date,
-      timezone: result.timezone,
-      slots: result.slots.map((s) => ({
+      timezone: open.timezone,
+      slots: open.slots.map((s) => ({
         startAt: s.startAt.toISOString(),
         endAt: s.endAt.toISOString(),
       })),

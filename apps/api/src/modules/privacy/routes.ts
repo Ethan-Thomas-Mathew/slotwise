@@ -15,11 +15,11 @@ export async function privacyRoutes(app: FastifyInstance, { db }: AppDeps) {
     });
 
   app.get('/account/data', { preHandler: [requireUser, limit(10)] }, async (req, reply) => {
-    const data = await exportMyData(db, req.auth!.user.id);
-    const day = data.exportedAt.slice(0, 10);
+    const myData = await exportMyData(db, req.auth!.user.id);
+    const day = myData.exportedAt.slice(0, 10);
     reply.header('content-disposition', `attachment; filename="slotwise-my-data-${day}.json"`);
     reply.header('cache-control', 'no-store');
-    return respond(DataExport, data);
+    return respond(DataExport, myData);
   });
 
   app.post('/account/delete', { preHandler: [requireUser, limit(5)] }, async (req, reply) => {

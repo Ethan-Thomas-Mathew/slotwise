@@ -232,11 +232,11 @@ export async function handleWebhook(
       .executeTakeFirst();
     if (!inserted) return 'duplicate' as const; // seen before: do nothing
 
-    let result: WebhookOutcome = 'processed';
+    let applied: WebhookOutcome = 'processed';
     switch (event.event) {
       case 'payment.captured':
       case 'order.paid':
-        result = await onPaymentCaptured(tx, event, effects, deps);
+        applied = await onPaymentCaptured(tx, event, effects, deps);
         break;
       case 'payment.failed':
         await onPaymentFailed(tx, event);
@@ -252,7 +252,7 @@ export async function handleWebhook(
       .set({ processed_at: sql`now()` })
       .where('id', '=', inserted.id)
       .execute();
-    return result;
+    return applied;
   });
   await runEffects(effects, deps.log);
   return outcome;
