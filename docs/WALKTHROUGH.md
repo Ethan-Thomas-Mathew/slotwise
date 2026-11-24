@@ -453,6 +453,41 @@ be computed while rendering. That removed the effect, the suppression, and a re-
 The signup form reads a field with `useWatch` instead of `watch`, which the React
 Compiler can optimise. Lint now reports nothing.
 
+### Upgrade phase 7: Benchmarks
+
+A performance number means little without the machine it came from. The benchmark
+(`pnpm bench`) now prints the CPU, memory, operating system, and the Node, Postgres and
+Redis versions, samples the process's peak memory, and outputs a Markdown table ready
+to paste. Its options became command-line arguments (`pnpm bench --concurrency 50`)
+because `VAR=value command` doesn't work in PowerShell.
+
+Two honest caveats are printed with every run and repeated in the README: the load
+generator runs in the same process as the API, so the API gets less CPU than it would
+alone; and the published numbers come from a 2-CPU Linux VM, not the laptop. Running
+`pnpm bench` there replaces them with real laptop numbers. The old performance page
+also extrapolated ("400,000 bookings an hour"); extrapolations were dropped, because a
+number that wasn't measured shouldn't be stated.
+
+### Upgrade phase 8: Documentation
+
+Before: ten documents and about 21,000 words, with the same ideas explained three times
+(a 51-entry decisions file, learning notes, interview notes). After:
+
+- `README.md`: what it is, a screenshot, how a request flows, a tested quick start, the
+  main decisions with what was rejected, measured benchmarks, and known limitations.
+- `docs/adr/`: one short Architecture Decision Record per significant decision, in a
+  fixed shape (context, decision, consequences, alternatives rejected). Smaller choices
+  moved into comments next to the code they explain.
+- This walkthrough, which absorbed the learning and interview notes.
+- `RUNBOOK.md`, `SECURITY.md` and `AUDIT.md`, unchanged in purpose.
+
+Why ADRs: a reviewer looking at one decision can read one page, and a decision that
+changes later gets a new record that supersedes the old one, so the history stays
+honest. A single long file mixes big and small choices and is rarely read end to end.
+
+The same phase removed decorative comment dividers and comments that only restated the
+code, and ended with a fresh-clone run of every check.
+
 ## Part 3: Five questions an interviewer is most likely to ask
 
 Answer in your own words; the notes below are what a good answer contains. Each points

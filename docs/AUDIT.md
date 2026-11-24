@@ -182,3 +182,38 @@ every commit leaves the app runnable and the tests green. After each phase,
 - D2: option B. The route table (option A) is **deferred**: the coverage test already
   catches a missing or extra route, and extending it to compare roles covers the next
   most likely mistake for far less churn than rewriting 11 route modules.
+
+## Status (24 November 2026)
+
+| Finding    | Status    | Commit or reason                                                                                                                                                 |
+| ---------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1         | Fixed     | `a8513b9` (with S2)                                                                                                                                              |
+| C2         | Fixed     | `28ae61e`                                                                                                                                                        |
+| C3         | Fixed     | `8db37dc`                                                                                                                                                        |
+| C4         | Fixed     | `137112f`                                                                                                                                                        |
+| C5         | Fixed     | `b53af8d`                                                                                                                                                        |
+| C6         | Fixed     | `194c97e`                                                                                                                                                        |
+| C7         | Fixed     | `10b72db`                                                                                                                                                        |
+| C8         | Fixed     | `7fa2d0c`                                                                                                                                                        |
+| S1         | Fixed     | `fff46b5`                                                                                                                                                        |
+| S2         | Fixed     | `a8513b9`                                                                                                                                                        |
+| S3         | Fixed     | `b4f0ab5`                                                                                                                                                        |
+| S4         | Fixed     | `87a8088`                                                                                                                                                        |
+| D1         | Fixed     | `99a4004`, `b42f909`                                                                                                                                             |
+| D2         | Fixed (B) | `a7e033b`. Option A (one route table) deferred: the tests cover a missing route and a wrong access rule; rewriting 11 route modules isn't worth it at this size. |
+| D3         | Fixed     | `43f0349`                                                                                                                                                        |
+| D4         | Fixed     | `8efaf1d`. On re-reading, the time rules already took `now`; the missing piece was boundary tests.                                                               |
+| D5, D6     | Fixed     | `ac4cc05` (plus `2e56d6f` for password checks)                                                                                                                   |
+| D7         | Fixed     | `186f592`                                                                                                                                                        |
+| D8         | Fixed     | `688afe7`                                                                                                                                                        |
+| P1         | Partly    | `695b592`. The benchmark records its hardware, and the README states the VM it ran on. Laptop numbers need a run on the laptop (`pnpm bench`).                   |
+| P2         | Fixed     | `695b592`                                                                                                                                                        |
+| X1, X2     | Fixed     | `ec932ff`                                                                                                                                                        |
+| X3         | Fixed     | `baefb6f`, `d8f9b60`, `c348092`                                                                                                                                  |
+| X4         | Fixed     | `ec932ff` (documented in CONTRIBUTING)                                                                                                                           |
+| U1, U2, U3 | Fixed     | `42aa81e`                                                                                                                                                        |
+| U4         | Fixed     | `d8f9b60`, `dcf49ba`                                                                                                                                             |
+| U5         | Fixed     | `03e6a50`                                                                                                                                                        |
+| A1, A2, A3 | Fixed     | `dcf49ba`, `c348092`                                                                                                                                             |
+| A4         | Fixed     | `753c0f2`                                                                                                                                                        |
+| Phase 1    | Open      | Re-running the Docker setup with the monitoring profile on the Windows laptop needs the laptop.                                                                  |

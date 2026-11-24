@@ -25,6 +25,7 @@ A self-review of Slotwise against the [OWASP Top 10:2025](https://owasp.org/Top1
 - Config is validated at startup (`src/config.ts`). The app won't start with missing secrets, and refuses the mock payment provider in production unless explicitly allowed for a demo site.
 - Security headers via `@fastify/helmet` on the API (`default-src 'none'`), and a strict CSP plus security headers in the nginx config for the frontend.
 - CORS allows only the configured frontend origin, with credentials. Request bodies are capped at 100 KB. Tests: `security.test.ts`.
+- Timeouts bound every query (10 s), idle transaction (30 s), database connect (5 s) and incoming request (30 s), so a stuck query or slow client can't hold connections indefinitely ([ADR 0015](adr/0015-timeouts.md)).
 - Unexpected errors return a generic message. Details go to the logs (with the request id), never to the client (tested).
 
 ## A03 Software Supply Chain Failures
@@ -77,7 +78,7 @@ A self-review of Slotwise against the [OWASP Top 10:2025](https://owasp.org/Top1
 
 **What Slotwise does:**
 
-- Rate limiting: 5 attempts per 15 minutes per IP + email on login, signup, register, password reset and invite acceptance, stored in Redis (tested).
+- Rate limiting: 5 attempts per 15 minutes per client IP and target (the email, or the one-time token) on login, signup, register, password reset and invite acceptance, stored in Redis. Behind nginx, the client IP is read through exactly the configured number of proxies, so clients can't choose their own address (tested).
 - The same error for "no such email" and "wrong password", with similar timing. Forgot-password always answers the same way (tested).
 - Sessions: httpOnly, SameSite=Lax cookies, server-side and revocable. A password reset logs the user out everywhere (tested).
 - CSRF: a per-session token is required on every write, plus an Origin check (tested).
@@ -99,11 +100,11 @@ A self-review of Slotwise against the [OWASP Top 10:2025](https://owasp.org/Top1
 
 **What Slotwise does:**
 
-- Structured JSON logs (pino) with a **request id** on every line, returned as the `x-request-id` header. Cookies, auth and CSRF headers are redacted.
+- Structured JSON logs (pino) with a **request id** on every line, returned as the `x-request-id` header. A caller's id is kept only if it is 1-64 plain characters. Cookies, auth and CSRF headers are redacted.
 - Rejected webhook signatures are logged as warnings. Unexpected errors are logged at error level with the request id and stack trace.
 - An **audit log** records who changed what (before/after) for every owner action, cancellation and payment decision, viewable by the owner.
 - Failed customer emails become visible to the owner after all retries.
-- **Alerting:** Prometheus alert rules (unit-tested) fire on API/worker down, error rate, latency, failing jobs, queue backlog and bursts of invalid webhook signatures; each links to a runbook section (`docs/RUNBOOK.md`).
+- **Alerting:** Prometheus alert rules (unit-tested) fire on API/worker down, error rate, latency, failing jobs, queue backlog, wrong-amount payments and bursts of invalid webhook signatures; each links to a runbook section (`docs/RUNBOOK.md`).
 
 ## A10 Mishandling of Exceptional Conditions
 
@@ -122,7 +123,7 @@ A self-review of Slotwise against the [OWASP Top 10:2025](https://owasp.org/Top1
 ## Known gaps (honest list)
 
 - No multi-factor authentication or "log out other sessions" button yet.
-- Rate limiting is per IP + email. A distributed attack on one account from many IPs would need an additional per-account limit.
+- Rate limiting is per IP and target. A distributed attack on one account from many IPs would need an additional per-account limit.
 - No automated dependency licence check or SBOM generation.
 - No penetration test has been done; this is a self-review.
 
