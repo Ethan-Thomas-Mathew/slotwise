@@ -5,7 +5,8 @@ import { resolve } from 'node:path';
 /**
  * Runs the Postgres command-line tools (pg_dump, pg_restore, psql) in one of two ways:
  *  - "docker" (default): inside the postgres container from docker-compose.yml, as the
- *    postgres superuser. Nothing to install on your computer.
+ *    postgres superuser. Nothing to install on your computer. PG_TOOLS_CONTAINER names
+ *    another container instead (CI uses its Postgres service container).
  *  - "local": the tools on your PATH, connecting as the table owner from
  *    MIGRATION_DATABASE_URL (used by the automated test).
  * Arguments are passed as a list (never through a shell), and passwords via
@@ -26,8 +27,12 @@ export function pgTool(tool: 'pg_dump' | 'pg_restore' | 'psql', args: string[], 
   let argv: string[];
   const env = { ...process.env };
   if (o.mode === 'docker') {
+    // The tools must match the server's version: a newer pg_restore emits settings an
+    // older server rejects. Running them inside the server's own container guarantees it.
     cmd = 'docker';
-    argv = ['compose', 'exec', '-T', 'postgres', tool, '-U', 'postgres', '-d', o.database, ...args];
+    const container = process.env.PG_TOOLS_CONTAINER;
+    const target = container ? ['exec', '-i', container] : ['compose', 'exec', '-T', 'postgres'];
+    argv = [...target, tool, '-U', 'postgres', '-d', o.database, ...args];
   } else {
     const url = new URL(process.env.MIGRATION_DATABASE_URL ?? '');
     if (!url.hostname) throw new Error('MIGRATION_DATABASE_URL is not set');
@@ -52,7 +57,12 @@ export function pgTool(tool: 'pg_dump' | 'pg_restore' | 'psql', args: string[], 
     if (o.stdout) child.stdout!.pipe(o.stdout);
     else child.stdout!.on('data', (d: Buffer) => (out += d.toString()));
     child.stderr!.on('data', (d: Buffer) => (err += d.toString()));
-    if (o.stdin) o.stdin.pipe(child.stdin!);
+    if (o.stdin) {
+      // If the tool exits early, writing more input fails with EPIPE; its exit code
+      // and stderr (reported below) are the real error, so this one adds nothing.
+      child.stdin!.on('error', () => undefined);
+      o.stdin.pipe(child.stdin!);
+    }
     child.on('error', (e) =>
       fail(
         new Error(

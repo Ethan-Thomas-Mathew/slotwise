@@ -63,6 +63,9 @@ jobs:
         run: pnpm test:coverage
         env:
           MAILPIT_URL: http://localhost:8025
+          # The backup tests run pg_dump/pg_restore inside the Postgres service container,
+          # so their version matches the server (the runner's own client is newer).
+          PG_TOOLS_CONTAINER: ${{ job.services.postgres.id }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
