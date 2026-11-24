@@ -4,6 +4,7 @@ import {
   type BookingDto,
   type CreateOrderResponse,
   type MeResponse,
+  HOLD_MINUTES,
 } from '@slotwise/shared';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -199,9 +200,9 @@ export function CheckoutPage() {
           <Panel className="p-8">
             <h1 className="text-2xl font-semibold">Your hold has ended</h1>
             <p className="mt-2 text-muted">
-              We kept this time for 10 minutes. It may still be free, so pick it again to continue.
-              If you already paid, you'll get an email and either a confirmed booking or an
-              automatic refund.
+              We kept this time for {HOLD_MINUTES} minutes. It may still be free, so pick it again
+              to continue. If you already paid, you'll get an email and either a confirmed booking
+              or an automatic refund.
             </p>
             <div className="mt-5">
               <Link className="font-medium text-peacock underline" to={`/b/${slug}`}>

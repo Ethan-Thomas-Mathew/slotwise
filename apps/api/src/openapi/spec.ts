@@ -38,6 +38,7 @@ import {
   TenantSettingsPatch,
   TimeOffDto,
   TimeOffInput,
+  HOLD_MINUTES,
 } from '@slotwise/shared';
 import { z } from 'zod';
 import { NotificationListQuery } from '../modules/notifications/routes';
@@ -251,7 +252,7 @@ export const operations: Operation[] = [
     method: 'post',
     path: '/bookings/hold',
     tag: 'Bookings',
-    summary: 'Hold a slot for 10 minutes while the customer pays',
+    summary: `Hold a slot for ${HOLD_MINUTES} minutes while the customer pays`,
     description:
       'Two customers can never hold the same time: the database rejects the second one with 409 SLOT_TAKEN.',
     who: ['CUSTOMER'],

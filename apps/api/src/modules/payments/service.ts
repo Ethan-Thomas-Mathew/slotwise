@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { HOLD_MINUTES } from '@slotwise/shared';
 import { sql } from 'kysely';
 import type { FastifyBaseLogger } from 'fastify';
 import { z } from 'zod';
@@ -50,7 +51,7 @@ export async function createOrderForBooking(
     if (!b.hold_expires_at || b.hold_expires_at.getTime() <= Date.now()) {
       throw new AppError(
         'INVALID_STATE',
-        'Your 10-minute hold has expired. Please pick a slot again.',
+        `Your ${HOLD_MINUTES}-minute hold has expired. Please pick a slot again.`,
       );
     }
     const tenant = await getTenant(tx);

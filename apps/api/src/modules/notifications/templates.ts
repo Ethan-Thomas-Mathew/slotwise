@@ -1,4 +1,4 @@
-import { formatPaise } from '@slotwise/shared';
+import { formatPaise, HOLD_MINUTES } from '@slotwise/shared';
 import { DateTime } from 'luxon';
 import type { NotificationType } from '../../db/schema';
 import type { OutgoingEmail } from '../../jobs/types';
@@ -86,7 +86,7 @@ export function renderBookingEmail(type: NotificationType, d: BookingEmailData):
         ...layout(
           "We couldn't complete your booking",
           [
-            `Your payment for ${what} on ${when} arrived after your 10-minute hold ended.`,
+            `Your payment for ${what} on ${when} arrived after your ${HOLD_MINUTES}-minute hold ended.`,
             `${d.refundReason ?? 'The slot was no longer available'}. We've started a full refund of ${price} (5–7 working days).`,
           ],
           d,

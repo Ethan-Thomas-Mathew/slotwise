@@ -1,5 +1,10 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { formatPaise, type BookingDto, type PublicTenantResponse } from '@slotwise/shared';
+import {
+  formatPaise,
+  HOLD_MINUTES,
+  type BookingDto,
+  type PublicTenantResponse,
+} from '@slotwise/shared';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ApiError, get, post } from '../../lib/api';
@@ -273,7 +278,7 @@ export function BookingPage() {
                     )}
                   </div>
                   <p className="mt-3 text-sm text-muted">
-                    We'll hold it for 10 minutes while you pay.
+                    We'll hold it for {HOLD_MINUTES} minutes while you pay.
                   </p>
                 </div>
               )}

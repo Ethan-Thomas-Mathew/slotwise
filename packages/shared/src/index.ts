@@ -1,3 +1,4 @@
+export * from './booking-rules';
 export * from './money';
 export * from './schemas/common';
 export * from './schemas/auth';

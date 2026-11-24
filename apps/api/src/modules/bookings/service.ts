@@ -1,5 +1,5 @@
 import { sql } from 'kysely';
-import type { BookingDto } from '@slotwise/shared';
+import { HOLD_MINUTES, type BookingDto } from '@slotwise/shared';
 import type { Booking, MembershipRole, Tenant } from '../../db/schema';
 import { PG, pgErrorCode } from '../../db/pg-errors';
 import type { TenantTx } from '../../db/tenant-tx';
@@ -21,7 +21,6 @@ import { getTenant } from '../tenants/repo';
 import * as repo from './repo';
 import { transitionBooking } from './state-machine';
 
-export const HOLD_MINUTES = 10;
 export const MAX_ACTIVE_HOLDS_PER_CUSTOMER = 3;
 
 export interface Actor {
