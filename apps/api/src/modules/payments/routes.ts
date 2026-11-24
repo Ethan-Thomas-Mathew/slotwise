@@ -4,6 +4,7 @@ import { CreateOrderRequest, CreateOrderResponse } from '@slotwise/shared';
 import { z } from 'zod';
 import type { AppDeps } from '../../app';
 import { notFound } from '../../lib/errors';
+import { webhooks } from '../../lib/metrics';
 import { parse, respond } from '../../lib/validate';
 import { inTenant, requireRole, tenantContext } from '../../plugins/auth';
 import { createOrderForBooking, handleWebhook } from './service';
@@ -37,6 +38,7 @@ export async function paymentRoutes(app: FastifyInstance, deps: AppDeps) {
           eventId: req.headers['x-razorpay-event-id'] as string | undefined,
         },
       );
+      webhooks.inc({ outcome });
       // 200 for duplicates/ignored too, so the provider stops retrying.
       return reply.status(200).send({ status: outcome });
     });

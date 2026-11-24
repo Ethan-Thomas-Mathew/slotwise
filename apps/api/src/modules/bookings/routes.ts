@@ -8,6 +8,7 @@ import {
 } from '@slotwise/shared';
 import type { AppDeps } from '../../app';
 import { runEffects, type Effects } from '../../lib/effects';
+import { bookingsHeld } from '../../lib/metrics';
 import { idParam } from '../../lib/params';
 import { parse, respond } from '../../lib/validate';
 import { inTenant, requireRole, tenantContext } from '../../plugins/auth';
@@ -48,6 +49,7 @@ export async function bookingRoutes(app: FastifyInstance, deps: AppDeps) {
     const booking = await change(req, (tx, effects) =>
       svc.holdSlot(tx, actorOf(req), body, effects, deps),
     );
+    bookingsHeld.inc();
     reply.status(201);
     return dto(req, booking.id);
   });

@@ -10,6 +10,7 @@ import { BullJobs } from './jobs/bull-jobs';
 import { createQueues } from './jobs/queues';
 import { startWorkers } from './jobs/workers';
 import { createMailer } from './lib/mailer';
+import { startMetricsServer, trackQueueDepth } from './lib/metrics';
 import { initSentry } from './lib/sentry';
 import { createPaymentProvider } from './modules/payments/provider';
 
@@ -29,13 +30,16 @@ const workers = startWorkers(
 
 // The safety-net job: every minute. upsert = safe to call on every start.
 await queues.maintenance.upsertJobScheduler('reconcile', { every: 60_000 }, { name: 'reconcile' });
-log.info('Worker started');
+trackQueueDepth(Object.values(queues));
+const metricsServer = await startMetricsServer(config.WORKER_METRICS_PORT, config.METRICS_HOST);
+log.info({ metrics: `${config.METRICS_HOST}:${config.WORKER_METRICS_PORT}` }, 'Worker started');
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.once(signal, async () => {
     log.info({ signal }, 'Worker shutting down');
     await Promise.all(workers.map((w) => w.close())); // finish in-flight jobs
     await Promise.all(Object.values(queues).map((q) => q.close()));
+    metricsServer.close();
     mailer.close();
     await db.destroy();
     connection.disconnect();

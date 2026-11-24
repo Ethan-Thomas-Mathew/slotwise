@@ -56,6 +56,9 @@ services:
       SMTP_PORT: '1025'
       PAYMENTS_PROVIDER: mock
       RAZORPAY_WEBHOOK_SECRET: local-docker-webhook-secret
+      # Metrics listen inside the private Docker network so Prometheus can read
+      # them. Their ports (9464/9465) are deliberately NOT published below.
+      METRICS_HOST: 0.0.0.0
     depends_on:
       postgres: { condition: service_healthy }
 
@@ -89,5 +92,55 @@ services:
       - '127.0.0.1:8080:8080'
     depends_on: [api]
 
+  # ---------------------------------------------------------------------------
+  # Monitoring (optional), on top of the full app:
+  #   docker compose --profile full --profile observability up -d --build
+  # Prometheus: http://localhost:9090 (raw metrics, alert rules at /alerts)
+  # Grafana:    http://localhost:3001 (the "Slotwise overview" dashboard)
+  # Both are bound to 127.0.0.1 and are read-only views; nothing is sent out.
+  # ---------------------------------------------------------------------------
+  prometheus:
+    profiles: [observability]
+    image: prom/prometheus:v3.5.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+      # The admin API and remote reload endpoints stay OFF (they are off by default).
+    volumes:
+      - ./ops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./ops/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - promdata:/prometheus
+    ports:
+      - '127.0.0.1:9090:9090'
+
+  grafana:
+    profiles: [observability]
+    image: grafana/grafana:12.1.0
+    # No default admin/admin password: a random one is generated on every start
+    # and never printed. Nobody logs in; the dashboard is shown read-only.
+    entrypoint:
+      - sh
+      - -c
+      - 'GF_SECURITY_ADMIN_PASSWORD="$$(head -c 32 /dev/urandom | base64)" exec /run.sh'
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_DISABLE_LOGIN_FORM: 'true'
+      GF_AUTH_BASIC_ENABLED: 'false'
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/slotwise.json
+      # No phoning home.
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+      GF_ANALYTICS_CHECK_FOR_UPDATES: 'false'
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: 'false'
+      GF_NEWS_NEWS_FEED_ENABLED: 'false'
+    volumes:
+      - ./ops/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./ops/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - '127.0.0.1:3001:3000'
+    depends_on: [prometheus]
+
 volumes:
   pgdata:
+  promdata:

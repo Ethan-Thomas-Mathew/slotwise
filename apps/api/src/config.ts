@@ -28,6 +28,15 @@ const EnvSchema = z.object({
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().min(8),
 
+  /**
+   * Prometheus metrics are served on a separate port, never the public one.
+   * 127.0.0.1 = only this machine can read them. Docker sets 0.0.0.0 so Prometheus
+   * can reach them over the private Docker network (the port is not published).
+   */
+  METRICS_HOST: z.string().default('127.0.0.1'),
+  METRICS_PORT: z.coerce.number().int().default(9464),
+  WORKER_METRICS_PORT: z.coerce.number().int().default(9465),
+
   SENTRY_DSN: z.string().optional(),
   /** Demo deployments only: allow the mock payment provider in production. */
   ALLOW_MOCK_PAYMENTS: z.enum(['true', 'false']).default('false'),

@@ -11,6 +11,7 @@ import type { Database } from './db/database';
 import type { Jobs } from './jobs/types';
 import type { PaymentProvider } from './modules/payments/provider';
 import { AppError } from './lib/errors';
+import { httpDuration } from './lib/metrics';
 import { registerAuth } from './plugins/auth';
 import { registerErrorHandler } from './plugins/error-handler';
 import { authRoutes } from './modules/auth/routes';
@@ -62,6 +63,18 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   registerErrorHandler(app);
   app.addHook('onSend', async (req, reply) => {
     reply.header('x-request-id', req.id);
+  });
+  // Metrics: label by route TEMPLATE (/bookings/:id), never the raw URL, so the
+  // number of series stays small and no ids or tokens end up in metrics.
+  app.addHook('onResponse', async (req, reply) => {
+    httpDuration.observe(
+      {
+        method: req.method,
+        route: req.routeOptions.url ?? 'unmatched',
+        status_code: reply.statusCode,
+      },
+      reply.elapsedTime / 1000,
+    );
   });
 
   // Security headers. The API only returns JSON, so the strictest CSP is fine.

@@ -1,12 +1,14 @@
 import type { FastifyInstance, FastifyError } from 'fastify';
 import { ZodError } from 'zod';
 import { AppError } from '../lib/errors';
+import { appErrors } from '../lib/metrics';
 import { Sentry } from '../lib/sentry';
 
 /** Converts every thrown error into the one consistent error shape. */
 export function registerErrorHandler(app: FastifyInstance) {
   app.setErrorHandler((err: FastifyError | Error, req, reply) => {
     if (err instanceof AppError) {
+      appErrors.inc({ code: err.code });
       return reply.status(err.statusCode).send({
         error: { code: err.code, message: err.message, details: err.details },
       });

@@ -3,6 +3,7 @@ import type { FastifyBaseLogger } from 'fastify';
 import type { Database } from '../db/database';
 import { withTenant } from '../db/tenant-tx';
 import type { Mailer } from '../lib/mailer';
+import { jobs as jobsMetric, refunds } from '../lib/metrics';
 import { expireHold } from '../modules/bookings/service';
 import { processNotification, reconcile } from '../modules/notifications/service';
 import type { PaymentProvider } from '../modules/payments/provider';
@@ -57,7 +58,11 @@ export function startWorkers(deps: WorkerDeps, connection: ConnectionOptions, pr
 
     new Worker<RefundJob>(
       QUEUE.refunds,
-      async (job) => processRefund(deps, job.data.tenantId, job.data.paymentId),
+      async (job) => {
+        const result = await processRefund(deps, job.data.tenantId, job.data.paymentId);
+        if (result === 'refunded') refunds.inc();
+        return result;
+      },
       { ...opts, concurrency: 2 },
     ),
 
@@ -68,12 +73,14 @@ export function startWorkers(deps: WorkerDeps, connection: ConnectionOptions, pr
   ];
 
   for (const w of workers) {
-    w.on('failed', (job, err) =>
+    w.on('completed', () => jobsMetric.inc({ queue: w.name, result: 'completed' }));
+    w.on('failed', (job, err) => {
+      jobsMetric.inc({ queue: w.name, result: 'failed' });
       deps.log.warn(
         { queue: w.name, jobId: job?.id, attempt: job?.attemptsMade, err: err.message },
         'Job failed',
-      ),
-    );
+      );
+    });
     w.on('error', (err) => deps.log.error({ queue: w.name, err }, 'Worker error'));
   }
   return workers;

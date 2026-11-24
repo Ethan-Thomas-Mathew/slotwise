@@ -1,0 +1,66 @@
+# Unit tests for the alert rules:  promtool test rules ops/prometheus/alerts.test.yml
+# Each test feeds fake metric history and checks which alerts fire.
+rule_files:
+  - alerts.yml
+evaluation_interval: 1m
+
+tests:
+  - name: API down for over a minute fires ApiDown
+    interval: 1m
+    input_series:
+      - series: 'up{job="api"}'
+        values: '1 1 0 0 0'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: ApiDown
+        exp_alerts: [] # just went down: wait (for: 1m) before alerting
+      - eval_time: 4m
+        alertname: ApiDown
+        exp_alerts:
+          - exp_labels: { severity: critical, job: api }
+            exp_annotations:
+              summary: The API has not answered a metrics scrape for 1 minute.
+              runbook: docs/RUNBOOK.md#api-is-down
+
+  - name: 10% server errors fires HighErrorRate; 1% does not
+    interval: 1m
+    input_series:
+      # 100 requests/min, 10 of them 5xx
+      - series: 'slotwise_http_request_duration_seconds_count{status_code="200"}'
+        values: '0+90x15'
+      - series: 'slotwise_http_request_duration_seconds_count{status_code="500"}'
+        values: '0+10x15'
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: HighErrorRate
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: Over 5% of API requests are failing with server errors.
+              runbook: docs/RUNBOOK.md#high-error-rate
+
+  - name: low error rate stays quiet
+    interval: 1m
+    input_series:
+      - series: 'slotwise_http_request_duration_seconds_count{status_code="200"}'
+        values: '0+99x15'
+      - series: 'slotwise_http_request_duration_seconds_count{status_code="500"}'
+        values: '0+1x15'
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: HighErrorRate
+        exp_alerts: []
+
+  - name: fake webhooks fire WebhookSignatureFailures
+    interval: 1m
+    input_series:
+      - series: 'slotwise_app_errors_total{code="BAD_SIGNATURE"}'
+        values: '0 2 4 6 8'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: WebhookSignatureFailures
+        exp_alerts:
+          - exp_labels: { severity: warning, code: BAD_SIGNATURE }
+            exp_annotations:
+              summary: Payment webhooks are arriving with invalid signatures.
+              runbook: docs/RUNBOOK.md#webhook-signature-failures

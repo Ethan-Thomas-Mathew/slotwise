@@ -1,0 +1,65 @@
+# Alert rules: conditions that mean "a human should look at this".
+# Locally they show up at http://localhost:9090/alerts. In a real deployment
+# Prometheus would forward them to Alertmanager (email, Slack, PagerDuty).
+groups:
+  - name: slotwise
+    rules:
+      - alert: ApiDown
+        expr: up{job="api"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: The API has not answered a metrics scrape for 1 minute.
+          runbook: docs/RUNBOOK.md#api-is-down
+
+      - alert: WorkerDown
+        expr: up{job="worker"} == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: The worker is down, so emails, hold expiry and refunds are not running.
+          runbook: docs/RUNBOOK.md#worker-is-down
+
+      - alert: HighErrorRate
+        # More than 5% of requests failed with a 5xx (a bug or a dependency outage).
+        expr: |
+          sum(rate(slotwise_http_request_duration_seconds_count{status_code=~"5.."}[5m]))
+            / sum(rate(slotwise_http_request_duration_seconds_count[5m])) > 0.05
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: Over 5% of API requests are failing with server errors.
+          runbook: docs/RUNBOOK.md#high-error-rate
+
+      - alert: SlowRequests
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(slotwise_http_request_duration_seconds_bucket[5m]))) > 1
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: The slowest 5% of API requests take longer than 1 second.
+          runbook: docs/RUNBOOK.md#slow-requests
+
+      - alert: JobsFailing
+        expr: sum by (queue) (increase(slotwise_jobs_total{result="failed"}[15m])) > 5
+        labels: { severity: warning }
+        annotations:
+          summary: 'More than 5 failed job attempts in 15 minutes on queue {{ $labels.queue }}.'
+          runbook: docs/RUNBOOK.md#jobs-failing
+
+      - alert: QueueBacklog
+        expr: slotwise_queue_jobs{state="waiting"} > 100
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: 'Queue {{ $labels.queue }} has had over 100 waiting jobs for 10 minutes.'
+          runbook: docs/RUNBOOK.md#queue-backlog
+
+      - alert: WebhookSignatureFailures
+        # Someone is sending fake payment webhooks, or our webhook secret is wrong.
+        expr: increase(slotwise_app_errors_total{code="BAD_SIGNATURE"}[10m]) > 3
+        labels: { severity: warning }
+        annotations:
+          summary: Payment webhooks are arriving with invalid signatures.
+          runbook: docs/RUNBOOK.md#webhook-signature-failures
