@@ -71,6 +71,10 @@ services:
     profiles: [full]
     build: { context: ., dockerfile: apps/api/Dockerfile }
     command: ['node', 'dist/worker.js']
+    # The image's HEALTHCHECK calls the API's /health endpoint. The worker
+    # shares the image but runs no web server, so that check doesn't apply here.
+    healthcheck:
+      disable: true
     environment: *api-env
     depends_on:
       migrate: { condition: service_completed_successfully }
